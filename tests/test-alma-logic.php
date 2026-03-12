@@ -113,6 +113,13 @@ if ($results['score'] > 0) {
     exit(1);
 }
 
+if (isset($results['counts'])) {
+    echo "Vulnerability Counts: Critico=" . $results['counts']['critico'] . ", Medio=" . $results['counts']['medio'] . ", Bajo=" . $results['counts']['bajo'] . "\n";
+} else {
+    echo "FAILED: Vulnerability counts missing.\n";
+    exit(1);
+}
+
 foreach ($results['vulnerabilities'] as $key => $val) {
     echo "Check $key: " . $val['status'] . "\n";
 }

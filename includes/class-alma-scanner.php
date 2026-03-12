@@ -24,11 +24,13 @@ class Alma_Scanner {
 		);
 
 		$score = $this->calculate_score( $results );
+		$counts = $this->get_vulnerability_counts( $results );
 
 		$data = array(
 			'score'           => $score,
 			'level'           => $this->get_security_level( $score ),
 			'vulnerabilities' => $results,
+			'counts'          => $counts,
 			'timestamp'       => time(),
 		);
 
@@ -307,5 +309,31 @@ class Alma_Scanner {
 		} else {
 			return 'Bajo';
 		}
+	}
+
+	private function get_vulnerability_counts( $results ) {
+		$counts = array(
+			'critico' => 0,
+			'medio'   => 0,
+			'bajo'    => 0,
+		);
+
+		foreach ( $results as $check ) {
+			if ( $check['status'] === 'secure' ) continue;
+
+			switch ( $check['risk'] ) {
+				case 'Crítico':
+					$counts['critico']++;
+					break;
+				case 'Medio':
+					$counts['medio']++;
+					break;
+				case 'Bajo':
+					$counts['bajo']++;
+					break;
+			}
+		}
+
+		return $counts;
 	}
 }

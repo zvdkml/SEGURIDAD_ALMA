@@ -49,6 +49,14 @@
         </div>
     </div>
 
+    <!-- Trend Chart -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
+        <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Tendencia de Seguridad</h3>
+        <div class="h-64">
+            <canvas id="trendChart"></canvas>
+        </div>
+    </div>
+
     <!-- Quick Insights -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">

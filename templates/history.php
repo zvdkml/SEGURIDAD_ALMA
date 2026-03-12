@@ -9,7 +9,9 @@
                 <tr>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Score</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nivel</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Críticas</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Medias</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bajas</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acción</th>
                 </tr>
             </thead>
@@ -25,10 +27,14 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-bold <?php echo $scan['score'] >= 80 ? 'text-green-600' : ( $scan['score'] >= 50 ? 'text-yellow-600' : 'text-red-600' ); ?>">
                                 <?php echo $scan['score']; ?>%
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <?php echo $scan['score'] >= 80 ? 'bg-green-100 text-green-800' : ( $scan['score'] >= 50 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800' ); ?>">
-                                    <?php echo $scan['level']; ?>
-                                </span>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                <span class="font-bold text-red-600"><?php echo isset($scan['counts']['critico']) ? $scan['counts']['critico'] : '0'; ?></span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                <span class="font-bold text-yellow-600"><?php echo isset($scan['counts']['medio']) ? $scan['counts']['medio'] : '0'; ?></span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                <span class="font-bold text-blue-600"><?php echo isset($scan['counts']['bajo']) ? $scan['counts']['bajo'] : '0'; ?></span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600 hover:text-blue-900 cursor-pointer view-scan-detail" data-index="<?php echo array_search( $scan, $history_data ); ?>">Ver detalle</td>
                         </tr>

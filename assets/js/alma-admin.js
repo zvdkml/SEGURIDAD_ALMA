@@ -2,13 +2,17 @@
     'use strict';
 
     let scoreChart = null;
+    let trendChart = null;
 
     $(document).ready(function() {
-        if (alma_ajax.latest_scan) {
+        if (alma_ajax.scan_index !== -1 && alma_ajax.history && alma_ajax.history[alma_ajax.scan_index]) {
+            updateUI(alma_ajax.history[alma_ajax.scan_index]);
+        } else if (alma_ajax.latest_scan) {
             updateUI(alma_ajax.latest_scan);
         } else {
             initChart(0);
         }
+        initTrendChart();
 
         $('#run-scan-btn').on('click', function() {
             runScan();
@@ -19,6 +23,47 @@
             window.location.href = '?page=alma-security&scan_index=' + index;
         });
     });
+
+    function initTrendChart() {
+        const ctx = document.getElementById('trendChart');
+        if (!ctx || !alma_ajax.history || alma_ajax.history.length === 0) return;
+
+        if (trendChart) {
+            trendChart.destroy();
+        }
+
+        const history = [...alma_ajax.history].reverse();
+        const labels = history.map(h => new Date(h.timestamp * 1000).toLocaleDateString());
+        const scores = history.map(h => h.score);
+
+        trendChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Security Score',
+                    data: scores,
+                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    }
 
     function initChart(score) {
         const ctx = document.getElementById('scoreChart');
@@ -66,7 +111,11 @@
             },
             success: function(response) {
                 if (response.success) {
+                    // Update global history for trend chart
+                    if (!alma_ajax.history) alma_ajax.history = [];
+                    alma_ajax.history.unshift(response.data);
                     updateUI(response.data);
+                    initTrendChart();
                 } else {
                     alert('Error: ' + response.data);
                 }

@@ -92,6 +92,7 @@ class Alma_Admin {
 			'nonce'       => wp_create_nonce( 'alma_security_nonce' ),
 			'latest_scan' => $latest_scan,
 			'history'     => $history->get_history(),
+			'scan_index'  => isset( $_GET['scan_index'] ) ? intval( $_GET['scan_index'] ) : -1,
 		) );
 	}
 
