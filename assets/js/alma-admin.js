@@ -3,6 +3,7 @@
 
     let scoreChart = null;
     let trendChart = null;
+    let distributionChart = null;
 
     $(document).ready(function() {
         if (alma_ajax.scan_index !== -1 && alma_ajax.history && alma_ajax.history[alma_ajax.scan_index]) {
@@ -60,6 +61,40 @@
                 },
                 plugins: {
                     legend: { display: false }
+                }
+            }
+        });
+    }
+
+    function initDistributionChart(counts) {
+        const ctx = document.getElementById('distributionChart');
+        if (!ctx) return;
+
+        if (distributionChart) {
+            distributionChart.destroy();
+        }
+
+        distributionChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Bajo', 'Medio', 'Crítico'],
+                datasets: [{
+                    data: [counts.bajo || 0, counts.medio || 0, counts.critico || 0],
+                    backgroundColor: ['#3B82F6', '#F59E0B', '#EF4444'],
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: true }
+                },
+                scales: {
+                    x: { beginAtZero: true, ticks: { precision: 0 } },
+                    y: { grid: { display: false } }
                 }
             }
         });
@@ -155,15 +190,33 @@
         const date = new Date(data.timestamp * 1000);
         $('#last-scan-info').text('Último escaneo: ' + date.toLocaleString());
 
+        // Update Stats Summary
+        let total = 0;
+        let secure = 0;
+        let warning = 0;
+        let critical = 0;
+
+        Object.values(data.vulnerabilities).forEach(v => {
+            total++;
+            if (v.status === 'secure') secure++;
+            else if (v.status === 'warning') warning++;
+            else if (v.status === 'critical') critical++;
+        });
+
+        $('#stat-total').text(total);
+        $('#stat-secure').text(secure);
+        $('#stat-warning').text(warning);
+        $('#stat-critical').text(critical);
+
+        // Update Distribution Chart
+        initDistributionChart(data.counts || {});
+
         // Update Vulnerability List
-        let criticalCount = 0;
         let listHtml = '';
         let tableHtml = '';
         let recHtml = '';
 
         Object.values(data.vulnerabilities).forEach(v => {
-            if (v.status === 'critical') criticalCount++;
-
             const statusColor = v.status === 'secure' ? 'text-green-500' : (v.status === 'warning' ? 'text-yellow-500' : 'text-red-500');
             const riskColor = v.risk === 'Crítico' ? 'text-red-600 font-bold' : (v.risk === 'Medio' ? 'text-yellow-600' : 'text-blue-600');
 
@@ -211,7 +264,6 @@
             }
         });
 
-        $('#critical-count').text(criticalCount);
         $('#vulnerability-list-short').html(listHtml);
         $('#vulnerabilities-table-body').html(tableHtml);
         $('#top-recommendations').html(recHtml || '<p class="text-green-500 italic text-center">¡Buen trabajo! No hay recomendaciones urgentes.</p>');

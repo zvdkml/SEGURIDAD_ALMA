@@ -42,10 +42,31 @@
             </div>
         </div>
 
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-center items-center text-center">
-            <h3 class="text-lg font-semibold text-gray-500 mb-2">Alertas Críticas</h3>
-            <span id="critical-count" class="text-5xl font-extrabold text-red-500 mb-2">0</span>
-            <p class="text-gray-400">Vulnerabilidades de alto riesgo detectadas.</p>
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center">
+            <h3 class="text-lg font-semibold text-gray-500 mb-2">Distribución de Riesgos</h3>
+            <div class="h-32 w-full">
+                <canvas id="distributionChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Details Stats -->
+    <div id="stats-summary" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-blue-50 p-4 rounded-lg border border-blue-100 text-center">
+            <div class="text-blue-500 text-xs font-bold uppercase mb-1">Total Chequeos</div>
+            <div id="stat-total" class="text-2xl font-bold text-blue-900">0</div>
+        </div>
+        <div class="bg-green-50 p-4 rounded-lg border border-green-100 text-center">
+            <div class="text-green-500 text-xs font-bold uppercase mb-1">Seguros</div>
+            <div id="stat-secure" class="text-2xl font-bold text-green-900">0</div>
+        </div>
+        <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-100 text-center">
+            <div class="text-yellow-500 text-xs font-bold uppercase mb-1">Advertencias</div>
+            <div id="stat-warning" class="text-2xl font-bold text-yellow-900">0</div>
+        </div>
+        <div class="bg-red-50 p-4 rounded-lg border border-red-100 text-center">
+            <div class="text-red-500 text-xs font-bold uppercase mb-1">Críticos</div>
+            <div id="stat-critical" class="text-2xl font-bold text-red-900">0</div>
         </div>
     </div>
 

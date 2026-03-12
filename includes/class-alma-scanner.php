@@ -146,7 +146,7 @@ class Alma_Scanner {
 	}
 
 	private function check_admin_users() {
-		$args = array( 'role' => 'Administrator' );
+		$args = array( 'role' => 'administrator' );
 		$users = get_users( $args );
 		$insecure_names = array( 'admin', 'administrator', 'webmaster', 'root' );
 		$found_insecure = array();
