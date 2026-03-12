@@ -282,7 +282,7 @@ class Alma_Scanner {
 		return array(
 			'name'           => 'Plugins Abandonados',
 			'status'         => 'secure', // Hard to determine without complex API calls
-			'risk'           => 'Medium',
+			'risk'           => 'Medio',
 			'description'    => 'No se detectaron plugins abandonados críticamente.',
 			'recommendation' => 'Revisa periódicamente que tus plugins sigan recibiendo actualizaciones.',
 		);

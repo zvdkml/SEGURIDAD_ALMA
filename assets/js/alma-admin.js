@@ -172,7 +172,7 @@
         // Update Risk Level
         const riskEl = $('#risk-level');
         riskEl.text(data.level);
-        riskEl.removeClass('bg-gray-200 text-gray-600 bg-green-100 text-green-800 bg-yellow-100 text-yellow-800 bg-red-100 text-red-800');
+        riskEl.removeClass('bg-gray-200 text-gray-500 bg-green-100 text-green-800 bg-yellow-100 text-yellow-800 bg-red-100 text-red-800');
 
         if (data.score >= 80) riskEl.addClass('bg-green-100 text-green-800');
         else if (data.score >= 50) riskEl.addClass('bg-yellow-100 text-yellow-800');
@@ -181,14 +181,14 @@
         // Update Progress Bar
         const progress = $('#score-progress');
         progress.css('width', data.score + '%');
-        progress.removeClass('bg-gray-400 bg-green-500 bg-yellow-500 bg-red-500');
+        progress.removeClass('bg-gray-300 bg-green-500 bg-yellow-500 bg-red-500');
         if (data.score >= 80) progress.addClass('bg-green-500');
         else if (data.score >= 50) progress.addClass('bg-yellow-500');
         else progress.addClass('bg-red-500');
 
         // Update Last Scan
         const date = new Date(data.timestamp * 1000);
-        $('#last-scan-info').text('Último escaneo: ' + date.toLocaleString());
+        $('#last-scan-info').text('Último análisis: ' + date.toLocaleString());
 
         // Update Stats Summary
         let total = 0;
@@ -205,36 +205,41 @@
 
         $('#stat-total').text(total);
         $('#stat-secure').text(secure);
-        $('#stat-warning').text(warning);
-        $('#stat-critical').text(critical);
+        $('#stat-critical-total').text(warning + critical);
 
         // Update Distribution Chart
         initDistributionChart(data.counts || {});
 
-        // Update Vulnerability List
+        // Update System Status Cards
+        updateSystemStatusCards(data.vulnerabilities);
+
+        // Update Vulnerability List & Critical Alerts
         let listHtml = '';
         let tableHtml = '';
-        let recHtml = '';
+        let criticalHtml = '';
+        let criticalCount = 0;
 
         Object.values(data.vulnerabilities).forEach(v => {
             const statusColor = v.status === 'secure' ? 'text-green-500' : (v.status === 'warning' ? 'text-yellow-500' : 'text-red-500');
             const riskColor = v.risk === 'Crítico' ? 'text-red-600 font-bold' : (v.risk === 'Medio' ? 'text-yellow-600' : 'text-blue-600');
 
             const alertIcon = `
-                <svg class="h-5 w-5 ${statusColor}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg class="h-4 w-4 ${statusColor}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     ${v.status === 'secure'
                         ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />'
                         : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />'}
                 </svg>`;
 
             listHtml += `
-                <li class="py-3 flex justify-between items-center">
-                    <div class="flex items-center">
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-8 py-4 whitespace-nowrap text-sm font-bold text-gray-700">${v.name}</td>
+                    <td class="px-8 py-4 whitespace-nowrap text-center">
+                        <span class="text-[10px] font-black uppercase tracking-widest ${riskColor}">${v.risk}</span>
+                    </td>
+                    <td class="px-8 py-4 whitespace-nowrap flex justify-end">
                         ${alertIcon}
-                        <span class="ml-2 text-gray-700 font-medium">${v.name}</span>
-                    </div>
-                    <span class="text-xs font-bold ${riskColor}">${v.risk}</span>
-                </li>
+                    </td>
+                </tr>
             `;
 
             tableHtml += `
@@ -254,19 +259,102 @@
                 </tr>
             `;
 
-            if (v.status !== 'secure' && recHtml.split('</div>').length < 5) {
-                recHtml += `
-                    <div class="p-3 bg-gray-50 border-l-4 border-yellow-400 rounded">
-                        <p class="text-sm font-bold text-gray-800">${v.name}</p>
-                        <p class="text-xs text-gray-600">${v.recommendation}</p>
+            if (v.status === 'critical' || (v.risk === 'Crítico' && v.status !== 'secure')) {
+                criticalCount++;
+                criticalHtml += `
+                    <div class="flex items-start p-4 bg-white rounded-2xl shadow-sm border-l-4 border-red-500">
+                        <svg class="h-5 w-5 text-red-500 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div>
+                            <p class="text-sm font-black text-gray-800 uppercase tracking-tight">${v.name}</p>
+                            <p class="text-xs text-red-600 mt-1">${v.description} <span class="font-bold underline ml-1">${v.recommendation}</span></p>
+                        </div>
                     </div>
                 `;
             }
         });
 
-        $('#vulnerability-list-short').html(listHtml);
+        // Toggle Critical Section
+        if (criticalCount > 0) {
+            $('#critical-issues-section').removeClass('hidden');
+            $('#critical-issues-container').html(criticalHtml);
+        } else {
+            $('#critical-issues-section').addClass('hidden');
+        }
+
+        $('#vulnerability-list-short').html(listHtml || '<tr><td colspan="3" class="px-8 py-12 text-center text-gray-300 italic">Análisis completado sin riesgos inmediatos.</td></tr>');
         $('#vulnerabilities-table-body').html(tableHtml);
-        $('#top-recommendations').html(recHtml || '<p class="text-green-500 italic text-center">¡Buen trabajo! No hay recomendaciones urgentes.</p>');
+
+        // Update Mini History
+        updateMiniHistory();
+    }
+
+    function updateSystemStatusCards(vulns) {
+        const checks = {
+            wp: ['wp_update'],
+            plugins: ['plugins_update', 'abandoned_plugins'],
+            security: ['xmlrpc', 'debug_mode', 'sensitive_files', 'file_permissions', 'https', 'security_headers', 'directory_listing'],
+            users: ['admin_users', 'login_attempts']
+        };
+
+        Object.keys(checks).forEach(key => {
+            let status = 'secure';
+            let label = 'Seguro';
+
+            checks[key].forEach(checkId => {
+                const check = vulns[checkId];
+                if (check) {
+                    if (check.status === 'critical') status = 'critical';
+                    else if (check.status === 'warning' && status !== 'critical') status = 'warning';
+                }
+            });
+
+            const badge = $('#status-badge-' + key);
+            const text = $('#status-text-' + key);
+
+            badge.removeClass('bg-gray-300 bg-green-500 bg-yellow-500 bg-red-500');
+            text.removeClass('text-gray-800 text-green-600 text-yellow-600 text-red-600');
+
+            if (status === 'secure') {
+                badge.addClass('bg-green-500');
+                text.addClass('text-green-600').text('Protegido');
+            } else if (status === 'warning') {
+                badge.addClass('bg-yellow-500');
+                text.addClass('text-yellow-600').text('Atención');
+            } else {
+                badge.addClass('bg-red-500');
+                text.addClass('text-red-600').text('Vulnerable');
+            }
+        });
+    }
+
+    function updateMiniHistory() {
+        if (!alma_ajax.history || alma_ajax.history.length === 0) return;
+
+        let html = '';
+        alma_ajax.history.slice(0, 5).forEach((h, i) => {
+            const date = new Date(h.timestamp * 1000);
+            const color = h.score >= 80 ? 'text-green-500' : (h.score >= 50 ? 'text-yellow-500' : 'text-red-500');
+
+            html += `
+                <div class="flex items-center justify-between p-4 rounded-2xl bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer view-scan-detail" data-index="${i}">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 rounded-xl bg-white border border-gray-100 flex items-center justify-center mr-4 text-xs font-black ${color}">
+                            ${h.score}%
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-gray-700">${date.toLocaleDateString()}</p>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">${date.toLocaleTimeString()}</p>
+                        </div>
+                    </div>
+                    <svg class="h-4 w-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </div>
+            `;
+        });
+        $('#history-mini-list').html(html);
     }
 
 })(jQuery);
