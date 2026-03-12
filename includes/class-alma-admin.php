@@ -97,7 +97,15 @@ class Alma_Admin {
 
 	public function render_dashboard() {
 		$history = new Alma_History();
-		$latest_scan = $history->get_latest_scan();
+		$scan_index = isset( $_GET['scan_index'] ) ? intval( $_GET['scan_index'] ) : -1;
+
+		if ( $scan_index !== -1 ) {
+			$history_data = $history->get_history();
+			$latest_scan = isset( $history_data[ $scan_index ] ) ? $history_data[ $scan_index ] : $history->get_latest_scan();
+		} else {
+			$latest_scan = $history->get_latest_scan();
+		}
+
 		include ALMA_SECURITY_PATH . 'templates/dashboard.php';
 	}
 

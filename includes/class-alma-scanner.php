@@ -44,11 +44,11 @@ class Alma_Scanner {
 			}
 		}
 		return array(
-			'name'           => 'WordPress Core Update',
+			'name'           => 'Actualización de WordPress',
 			'status'         => $is_secure ? 'secure' : 'warning',
-			'risk'           => 'Medium',
-			'description'    => $is_secure ? 'WordPress está actualizado.' : 'Hay una nueva versión de WordPress disponible.',
-			'recommendation' => 'Actualiza WordPress a la última versión.',
+			'risk'           => 'Medio',
+			'description'    => $is_secure ? 'WordPress está actualizado.' : 'Hay una nueva versión de WordPress disponible que puede contener parches de seguridad.',
+			'recommendation' => 'Actualiza WordPress a la última versión disponible.',
 		);
 	}
 
@@ -56,11 +56,11 @@ class Alma_Scanner {
 		$update_plugins = get_site_transient( 'update_plugins' );
 		$count = ! empty( $update_plugins->response ) ? count( $update_plugins->response ) : 0;
 		return array(
-			'name'           => 'Plugin Updates',
+			'name'           => 'Actualización de Plugins',
 			'status'         => $count === 0 ? 'secure' : 'warning',
-			'risk'           => 'Medium',
+			'risk'           => 'Medio',
 			'count'          => $count,
-			'description'    => $count === 0 ? 'Todos los plugins están actualizados.' : "Tienes $count plugins desactualizados.",
+			'description'    => $count === 0 ? 'Todos los plugins están actualizados.' : "Tienes $count plugins desactualizados, lo que aumenta el riesgo de vulnerabilidades.",
 			'recommendation' => 'Actualiza todos los plugins a sus últimas versiones.',
 		);
 	}
@@ -69,9 +69,9 @@ class Alma_Scanner {
 		$update_themes = get_site_transient( 'update_themes' );
 		$count = ! empty( $update_themes->response ) ? count( $update_themes->response ) : 0;
 		return array(
-			'name'           => 'Theme Updates',
+			'name'           => 'Actualización de Temas',
 			'status'         => $count === 0 ? 'secure' : 'warning',
-			'risk'           => 'Low',
+			'risk'           => 'Bajo',
 			'count'          => $count,
 			'description'    => $count === 0 ? 'Todos los temas están actualizados.' : "Tienes $count temas desactualizados.",
 			'recommendation' => 'Actualiza tus temas.',
@@ -79,17 +79,16 @@ class Alma_Scanner {
 	}
 
 	private function check_xmlrpc() {
-		$is_active = true; // By default WP has it active
-		// Check if it's disabled via filter
+		$is_active = true;
 		if ( ! apply_filters( 'xmlrpc_enabled', true ) ) {
 			$is_active = false;
 		}
 		return array(
 			'name'           => 'XML-RPC',
 			'status'         => $is_active ? 'warning' : 'secure',
-			'risk'           => 'Medium',
-			'description'    => $is_active ? 'XML-RPC está activado, lo que puede ser usado para ataques de fuerza bruta.' : 'XML-RPC está desactivado.',
-			'recommendation' => 'Desactiva XML-RPC si no lo necesitas.',
+			'risk'           => 'Medio',
+			'description'    => $is_active ? 'XML-RPC está activado, lo que puede ser explotado para ataques de fuerza bruta o DDoS.' : 'XML-RPC está desactivado correctamente.',
+			'recommendation' => 'Desactiva XML-RPC mediante un plugin o añadiendo un filtro si no utilizas aplicaciones externas o Jetpack.',
 		);
 	}
 
@@ -98,14 +97,14 @@ class Alma_Scanner {
 		return array(
 			'name'           => 'Modo Debug',
 			'status'         => $debug ? 'critical' : 'secure',
-			'risk'           => 'High',
-			'description'    => $debug ? 'WP_DEBUG está activado, exponiendo información sensible.' : 'El modo debug está desactivado.',
-			'recommendation' => 'Desactiva WP_DEBUG en wp-config.php.',
+			'risk'           => 'Crítico',
+			'description'    => $debug ? 'El modo de depuración (WP_DEBUG) está activo, lo que puede exponer rutas de archivos y errores internos.' : 'El modo debug está desactivado.',
+			'recommendation' => 'Desactiva WP_DEBUG en el archivo wp-config.php.',
 		);
 	}
 
 	private function check_sensitive_files() {
-		$files = array( 'readme.html', 'license.txt', 'wp-config-sample.php' );
+		$files = array( 'readme.html', 'license.txt', 'wp-config-sample.php', 'wp-config.php.bak', 'wp-config.php.save', '.env', 'phpinfo.php' );
 		$exposed = array();
 		foreach ( $files as $file ) {
 			if ( file_exists( ABSPATH . $file ) ) {
@@ -116,9 +115,9 @@ class Alma_Scanner {
 		return array(
 			'name'           => 'Archivos Sensibles',
 			'status'         => $is_secure ? 'secure' : 'warning',
-			'risk'           => 'Low',
-			'description'    => $is_secure ? 'No se detectaron archivos informativos expuestos.' : 'Archivos como readme.html o license.txt están presentes.',
-			'recommendation' => 'Elimina archivos innecesarios que revelen la versión de WordPress.',
+			'risk'           => 'Medio',
+			'description'    => $is_secure ? 'No se detectaron archivos sensibles expuestos.' : 'Se han encontrado archivos que exponen información del sistema: ' . implode(', ', $exposed),
+			'recommendation' => 'Elimina o bloquea el acceso a estos archivos para evitar que atacantes obtengan información sobre tu instalación.',
 		);
 	}
 
@@ -128,8 +127,8 @@ class Alma_Scanner {
 			return array(
 				'name'           => 'Permisos de Archivos',
 				'status'         => 'warning',
-				'risk'           => 'Medium',
-				'description'    => 'No se pudo encontrar wp-config.php para verificar permisos.',
+				'risk'           => 'Medio',
+				'description'    => 'No se pudo encontrar wp-config.php para verificar sus permisos.',
 				'recommendation' => 'Asegúrate de que wp-config.php exista y tenga permisos restrictivos.',
 			);
 		}
@@ -138,16 +137,16 @@ class Alma_Scanner {
 		return array(
 			'name'           => 'Permisos de Archivos',
 			'status'         => $is_secure ? 'secure' : 'warning',
-			'risk'           => 'Medium',
-			'description'    => "Permisos de wp-config.php: $wp_config_perms.",
-			'recommendation' => 'Asegúrate de que wp-config.php tenga permisos restrictivos (ej. 644 o 600).',
+			'risk'           => 'Medio',
+			'description'    => "Los permisos actuales de wp-config.php son $wp_config_perms.",
+			'recommendation' => 'Configura los permisos de wp-config.php a 644 o 600 para mayor seguridad.',
 		);
 	}
 
 	private function check_admin_users() {
 		$args = array( 'role' => 'Administrator' );
 		$users = get_users( $args );
-		$insecure_names = array( 'admin', 'administrator', 'webmaster' );
+		$insecure_names = array( 'admin', 'administrator', 'webmaster', 'root' );
 		$found_insecure = array();
 		foreach ( $users as $user ) {
 			if ( in_array( strtolower( $user->user_login ), $insecure_names ) ) {
@@ -158,9 +157,9 @@ class Alma_Scanner {
 		return array(
 			'name'           => 'Usuarios Administradores',
 			'status'         => $is_secure ? 'secure' : 'warning',
-			'risk'           => 'Medium',
-			'description'    => $is_secure ? 'No se encontraron nombres de usuario administrador comunes.' : 'Se encontraron administradores con nombres genéricos (admin).',
-			'recommendation' => 'Evita usar "admin" como nombre de usuario administrador.',
+			'risk'           => 'Crítico',
+			'description'    => $is_secure ? 'No se encontraron usuarios administradores con nombres genéricos.' : 'Se detectaron administradores con nombres inseguros (ej: admin).',
+			'recommendation' => 'Crea un nuevo administrador con un nombre único y elimina el usuario "admin".',
 		);
 	}
 
@@ -169,9 +168,9 @@ class Alma_Scanner {
 		return array(
 			'name'           => 'Conexión HTTPS',
 			'status'         => $is_https ? 'secure' : 'critical',
-			'risk'           => 'High',
-			'description'    => $is_https ? 'El sitio usa HTTPS.' : 'El sitio no usa una conexión segura (HTTPS).',
-			'recommendation' => 'Instala un certificado SSL y activa HTTPS.',
+			'risk'           => 'Crítico',
+			'description'    => $is_https ? 'El sitio web utiliza una conexión segura mediante HTTPS.' : 'El sitio no utiliza HTTPS, los datos se transmiten en texto plano.',
+			'recommendation' => 'Instala un certificado SSL y configura el sitio para que use HTTPS obligatoriamente.',
 		);
 	}
 
@@ -179,11 +178,11 @@ class Alma_Scanner {
 		$response = wp_remote_get( home_url() );
 		if ( is_wp_error( $response ) ) {
 			return array(
-				'name'           => 'Headers de Seguridad',
+				'name'           => 'Cabeceras de Seguridad',
 				'status'         => 'warning',
-				'risk'           => 'Medium',
-				'description'    => 'No se pudo conectar al sitio para verificar los headers.',
-				'recommendation' => 'Verifica manualmente los headers de seguridad.',
+				'risk'           => 'Medio',
+				'description'    => 'No se pudo realizar la conexión para verificar las cabeceras HTTP.',
+				'recommendation' => 'Verifica que el servidor esté configurado para enviar cabeceras de seguridad.',
 			);
 		}
 
@@ -205,11 +204,11 @@ class Alma_Scanner {
 
 		$is_secure = count( $found ) >= 3;
 		return array(
-			'name'           => 'Headers de Seguridad',
+			'name'           => 'Cabeceras de Seguridad',
 			'status'         => $is_secure ? 'secure' : 'warning',
-			'risk'           => 'Medium',
-			'description'    => $is_secure ? 'Se detectaron headers de seguridad principales.' : 'Faltan headers de seguridad importantes (detectados: ' . ( empty( $found ) ? 'ninguno' : implode( ', ', $found ) ) . ').',
-			'recommendation' => 'Configura headers de seguridad para prevenir ataques XSS y Clickjacking.',
+			'risk'           => 'Medio',
+			'description'    => $is_secure ? 'Tu sitio envía cabeceras de seguridad recomendadas.' : 'Faltan cabeceras de seguridad (X-Frame-Options, CSP, etc.). Detectadas: ' . ( empty( $found ) ? 'ninguna' : implode( ', ', $found ) ),
+			'recommendation' => 'Implementa cabeceras de seguridad HTTP para protegerte contra ataques XSS y de inyección.',
 		);
 	}
 
@@ -228,9 +227,9 @@ class Alma_Scanner {
 		return array(
 			'name'           => 'Listado de Directorios',
 			'status'         => $is_secure ? 'secure' : 'warning',
-			'risk'           => 'Medium',
-			'description'    => $is_secure ? 'El listado de directorios parece estar desactivado.' : 'El listado de directorios está habilitado, exponiendo tus archivos.',
-			'recommendation' => 'Añade "Options -Indexes" a tu archivo .htaccess o usa un archivo index.php vacío.',
+			'risk'           => 'Medio',
+			'description'    => $is_secure ? 'El listado de directorios está desactivado correctamente.' : 'El listado de directorios está habilitado, permitiendo ver todos tus archivos subidos.',
+			'recommendation' => 'Desactiva el listado de directorios en el servidor o añade un archivo index.php vacío en la carpeta de uploads.',
 		);
 	}
 
@@ -255,7 +254,7 @@ class Alma_Scanner {
 		return array(
 			'name'           => 'Intentos de Login',
 			'status'         => $is_protected ? 'secure' : 'warning',
-			'risk'           => 'Medium',
+			'risk'           => 'Medio',
 			'description'    => $is_protected ? 'Se detectó un plugin de protección contra ataques de fuerza bruta.' : 'No se detectó protección contra intentos de login ilimitados.',
 			'recommendation' => 'Instala un plugin como "Limit Login Attempts Reloaded".',
 		);

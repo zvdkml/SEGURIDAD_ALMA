@@ -31,7 +31,7 @@ class Alma_Shortcode {
 			</div>
 
 			<div style="display: flex; align-items: center; gap: 20px;">
-				<div style="width: 80px; height: 80px; border-radius: 50%; border: 8px solid #f3f4f6; border-top-color: <?php echo $color; ?>; display: flex; items-center; justify-content: center; position: relative;">
+				<div style="width: 80px; height: 80px; border-radius: 50%; border: 8px solid #f3f4f6; border-top-color: <?php echo $color; ?>; display: flex; align-items: center; justify-content: center; position: relative;">
 					<span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-weight: 800; color: <?php echo $color; ?>; font-size: 20px;"><?php echo $score; ?>%</span>
 				</div>
 				<div>

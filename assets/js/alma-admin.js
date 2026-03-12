@@ -16,14 +16,7 @@
 
         $(document).on('click', '.view-scan-detail', function() {
             const index = $(this).data('index');
-            const history = alma_ajax.history || [];
-            if (history[index]) {
-                updateUI(history[index]);
-                // Navigate to dashboard if on history page
-                if (window.location.href.indexOf('alma-history') !== -1) {
-                    window.location.href = '?page=alma-security';
-                }
-            }
+            window.location.href = '?page=alma-security&scan_index=' + index;
         });
     });
 
@@ -123,25 +116,39 @@
             if (v.status === 'critical') criticalCount++;
 
             const statusColor = v.status === 'secure' ? 'text-green-500' : (v.status === 'warning' ? 'text-yellow-500' : 'text-red-500');
-            const statusIcon = v.status === 'secure' ? '✓' : '!';
+            const riskColor = v.risk === 'Crítico' ? 'text-red-600 font-bold' : (v.risk === 'Medio' ? 'text-yellow-600' : 'text-blue-600');
+
+            const alertIcon = `
+                <svg class="h-5 w-5 ${statusColor}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    ${v.status === 'secure'
+                        ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />'
+                        : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />'}
+                </svg>`;
 
             listHtml += `
                 <li class="py-3 flex justify-between items-center">
-                    <span class="text-gray-700 font-medium">${v.name}</span>
-                    <span class="font-bold ${statusColor}">${statusIcon}</span>
+                    <div class="flex items-center">
+                        ${alertIcon}
+                        <span class="ml-2 text-gray-700 font-medium">${v.name}</span>
+                    </div>
+                    <span class="text-xs font-bold ${riskColor}">${v.risk}</span>
                 </li>
             `;
 
             tableHtml += `
-                <tr>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${v.name}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${v.risk}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${v.status === 'secure' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                            ${v.status}
-                        </span>
+                <tr class="${v.status !== 'secure' ? 'bg-red-50' : ''}">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        <div class="flex items-center">
+                            ${alertIcon}
+                            <span class="ml-2">${v.name}</span>
+                        </div>
                     </td>
-                    <td class="px-6 py-4 text-sm text-gray-500">${v.recommendation}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm ${riskColor}">${v.risk}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500">
+                        <div class="font-bold text-gray-700 mb-1">${v.status.toUpperCase()}</div>
+                        <div class="text-xs leading-tight">${v.description}</div>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-blue-700 font-medium">${v.recommendation}</td>
                 </tr>
             `;
 
