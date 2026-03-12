@@ -37,6 +37,7 @@ class Seguridad_Alma {
 		require_once ALMA_SECURITY_PATH . 'includes/class-alma-admin.php';
 		require_once ALMA_SECURITY_PATH . 'includes/class-alma-history.php';
 		require_once ALMA_SECURITY_PATH . 'includes/class-alma-api.php';
+		require_once ALMA_SECURITY_PATH . 'includes/class-alma-shortcode.php';
 	}
 
 	private function init_hooks() {
