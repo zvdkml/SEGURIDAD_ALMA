@@ -368,11 +368,15 @@
     }
 
     function renderSpecificResults(data) {
-        // Check if we have detailed plugin data
-        const pluginsDetailed = Object.values(data.vulnerabilities).find(v => v.is_detailed);
+        // Check if we have detailed data
+        const detailed = Object.values(data.vulnerabilities).find(v => v.is_detailed);
 
-        if (pluginsDetailed) {
-            renderPluginSpecificResults(pluginsDetailed.data);
+        if (detailed) {
+            if (detailed.name.includes('Plugins')) {
+                renderPluginSpecificResults(detailed.data);
+            } else if (detailed.name.includes('Temas')) {
+                renderThemeSpecificResults(detailed.data);
+            }
             return;
         }
 
@@ -401,6 +405,50 @@
             `;
         });
         html += '</div>';
+        $('#scan-results-container').html(html);
+    }
+
+    function renderThemeSpecificResults(themes) {
+        let html = `
+            <div class="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-50 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                        <tr>
+                            <th class="px-8 py-6">Tema</th>
+                            <th class="px-8 py-6">Estado</th>
+                            <th class="px-8 py-6">Versión</th>
+                            <th class="px-8 py-6">Última Act.</th>
+                            <th class="px-8 py-6 text-right">Riesgo</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50 font-medium">
+        `;
+
+        Object.values(themes).forEach(t => {
+            const statusColor = t.status === 'secure' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700';
+            const riskColor = t.risk === 'Crítico' ? 'text-red-600' : (t.risk === 'Medio' ? 'text-yellow-600' : 'text-blue-600');
+
+            html += `
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-8 py-6">
+                        <div class="text-gray-800 font-bold">${t.name}</div>
+                        <div class="text-[10px] text-gray-400 mt-0.5">${t.active ? 'Activo' : 'Inactivo'}</div>
+                    </td>
+                    <td class="px-8 py-6">
+                        <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter ${statusColor}">
+                            ${t.status === 'secure' ? 'Seguro' : 'Atención'}
+                        </span>
+                    </td>
+                    <td class="px-8 py-6 text-sm text-gray-500">${t.version}</td>
+                    <td class="px-8 py-6 text-sm text-gray-500">${t.last_upd}</td>
+                    <td class="px-8 py-6 text-right">
+                        <span class="text-xs font-black uppercase tracking-widest ${riskColor}">${t.risk}</span>
+                    </td>
+                </tr>
+            `;
+        });
+
+        html += '</tbody></table></div>';
         $('#scan-results-container').html(html);
     }
 

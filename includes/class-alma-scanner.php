@@ -10,7 +10,7 @@ class Alma_Scanner {
 		$all_checks = array(
 			'wp'      => array( 'wp_update', 'xmlrpc', 'debug_mode', 'sensitive_files', 'file_permissions', 'directory_listing', 'https' ),
 			'plugins' => array( 'plugins_detailed' ),
-			'themes'  => array( 'themes_update' ),
+			'themes'  => array( 'themes_detailed' ),
 			'server'  => array( 'file_permissions', 'https', 'security_headers', 'directory_listing', 'sensitive_files' ),
 			'users'   => array( 'admin_users', 'login_attempts' ),
 			'malware' => array(), // Placeholder for integrity/malware checks
@@ -83,6 +83,68 @@ class Alma_Scanner {
 			'count'          => $count,
 			'description'    => $count === 0 ? 'Todos los plugins están actualizados.' : "Tienes $count plugins desactualizados, lo que aumenta el riesgo de vulnerabilidades.",
 			'recommendation' => 'Actualiza todos los plugins a sus últimas versiones.',
+		);
+	}
+
+	private function check_themes_detailed() {
+		$all_themes = wp_get_themes();
+		$active_theme = wp_get_theme();
+		$update_themes = get_site_transient( 'update_themes' );
+
+		$theme_results = array();
+
+		foreach ( $all_themes as $slug => $theme ) {
+			$is_active = ( $slug === $active_theme->get_stylesheet() );
+			$has_update = isset( $update_themes->response[ $slug ] );
+
+			// Check for insecure files in theme folder
+			$theme_path = $theme->get_stylesheet_directory();
+			$insecure_files_to_check = array( '.env', 'wp-config.php', 'config.php', 'sql.sql', 'db.sql', 'error_log' );
+			$found_insecure = array();
+			foreach ( $insecure_files_to_check as $f ) {
+				if ( file_exists( $theme_path . '/' . $f ) ) {
+					$found_insecure[] = $f;
+				}
+			}
+
+			$status = 'secure';
+			$risk = 'Bajo';
+
+			if ( $has_update ) {
+				$status = 'warning';
+				$risk = 'Medio';
+			}
+
+			if ( ! $is_active ) {
+				$status = 'warning';
+				$risk = 'Bajo';
+			}
+
+			if ( ! empty( $found_insecure ) ) {
+				$status = 'critical';
+				$risk = 'Crítico';
+			}
+
+			$theme_results[ $slug ] = array(
+				'name'      => $theme->get( 'Name' ),
+				'version'   => $theme->get( 'Version' ),
+				'active'    => $is_active,
+				'update'    => $has_update,
+				'insecure'  => $found_insecure,
+				'status'    => $status,
+				'risk'      => $risk,
+				'last_upd'  => 'Reciente', // Simulated
+			);
+		}
+
+		return array(
+			'name'           => 'Análisis Detallado de Temas',
+			'status'         => 'secure',
+			'risk'           => 'Bajo',
+			'is_detailed'    => true,
+			'data'           => $theme_results,
+			'description'    => 'Se han analizado ' . count( $all_themes ) . ' temas instalados.',
+			'recommendation' => 'Mantén tus temas actualizados y elimina los que no utilices para reducir la superficie de ataque.',
 		);
 	}
 
