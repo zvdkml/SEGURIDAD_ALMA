@@ -41,6 +41,60 @@ class Alma_Admin {
 
 		add_submenu_page(
 			'alma-security',
+			'Scan WordPress',
+			'Scan WordPress',
+			'manage_options',
+			'alma-scan-wp',
+			array( $this, 'render_scan_page' )
+		);
+
+		add_submenu_page(
+			'alma-security',
+			'Scan Plugins',
+			'Scan Plugins',
+			'manage_options',
+			'alma-scan-plugins',
+			array( $this, 'render_scan_page' )
+		);
+
+		add_submenu_page(
+			'alma-security',
+			'Scan Themes',
+			'Scan Themes',
+			'manage_options',
+			'alma-scan-themes',
+			array( $this, 'render_scan_page' )
+		);
+
+		add_submenu_page(
+			'alma-security',
+			'Scan Server',
+			'Scan Server',
+			'manage_options',
+			'alma-scan-server',
+			array( $this, 'render_scan_page' )
+		);
+
+		add_submenu_page(
+			'alma-security',
+			'Scan Users',
+			'Scan Users',
+			'manage_options',
+			'alma-scan-users',
+			array( $this, 'render_scan_page' )
+		);
+
+		add_submenu_page(
+			'alma-security',
+			'Malware Scan',
+			'Malware Scan',
+			'manage_options',
+			'alma-scan-malware',
+			array( $this, 'render_scan_page' )
+		);
+
+		add_submenu_page(
+			'alma-security',
 			'Vulnerabilidades',
 			'Vulnerabilidades',
 			'manage_options',
@@ -68,10 +122,7 @@ class Alma_Admin {
 	}
 
 	public function enqueue_assets( $hook ) {
-		if ( strpos( $hook, 'alma-security' ) === false &&
-			 strpos( $hook, 'alma-vulnerabilities' ) === false &&
-			 strpos( $hook, 'alma-history' ) === false &&
-			 strpos( $hook, 'alma-settings' ) === false ) {
+		if ( strpos( $hook, 'alma' ) === false ) {
 			return;
 		}
 
@@ -110,9 +161,33 @@ class Alma_Admin {
 		include ALMA_SECURITY_PATH . 'templates/dashboard.php';
 	}
 
+	public function render_scan_page() {
+		$page = isset( $_GET['page'] ) ? sanitize_text_field( $_GET['page'] ) : '';
+		$type = str_replace( 'alma-scan-', '', $page );
+
+		$titles = array(
+			'wp'      => 'WordPress Security Scan',
+			'plugins' => 'Plugins Security Scan',
+			'themes'  => 'Themes Security Scan',
+			'server'  => 'Server & Network Scan',
+			'users'   => 'User Access Scan',
+			'malware' => 'Malware & File Integrity Scan',
+		);
+
+		$title = isset( $titles[ $type ] ) ? $titles[ $type ] : 'Security Scan';
+
+		include ALMA_SECURITY_PATH . 'templates/scan-generic.php';
+	}
+
 	public function render_vulnerabilities() {
 		$history = new Alma_History();
-		$latest_scan = $history->get_latest_scan();
+		$scan_index = isset( $_GET['scan_index'] ) ? intval( $_GET['scan_index'] ) : -1;
+		if ( $scan_index !== -1 ) {
+			$history_data = $history->get_history();
+			$latest_scan = isset( $history_data[ $scan_index ] ) ? $history_data[ $scan_index ] : $history->get_latest_scan();
+		} else {
+			$latest_scan = $history->get_latest_scan();
+		}
 		include ALMA_SECURITY_PATH . 'templates/vulnerabilities.php';
 	}
 
@@ -133,8 +208,9 @@ class Alma_Admin {
 			wp_send_json_error( 'Acceso denegado' );
 		}
 
+		$type = isset( $_POST['type'] ) ? sanitize_text_field( $_POST['type'] ) : 'all';
 		$scanner = new Alma_Scanner();
-		$results = $scanner->run_scan();
+		$results = $scanner->run_scan( $type );
 
 		// Save to history
 		$history = new Alma_History();

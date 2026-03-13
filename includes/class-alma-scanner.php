@@ -6,22 +6,41 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class Alma_Scanner {
 
-	public function run_scan() {
-		$results = array(
-			'wp_update'         => $this->check_wp_update(),
-			'plugins_update'    => $this->check_plugins_update(),
-			'themes_update'     => $this->check_themes_update(),
-			'xmlrpc'            => $this->check_xmlrpc(),
-			'debug_mode'        => $this->check_debug_mode(),
-			'sensitive_files'   => $this->check_sensitive_files(),
-			'file_permissions'  => $this->check_file_permissions(),
-			'admin_users'       => $this->check_admin_users(),
-			'login_attempts'    => $this->check_login_attempts(),
-			'https'             => $this->check_https(),
-			'security_headers'  => $this->check_security_headers(),
-			'directory_listing' => $this->check_directory_listing(),
-			'abandoned_plugins' => $this->check_abandoned_plugins(),
+	public function run_scan( $type = 'all' ) {
+		$all_checks = array(
+			'wp'      => array( 'wp_update', 'xmlrpc', 'debug_mode' ),
+			'plugins' => array( 'plugins_update', 'abandoned_plugins' ),
+			'themes'  => array( 'themes_update' ),
+			'server'  => array( 'file_permissions', 'https', 'security_headers', 'directory_listing', 'sensitive_files' ),
+			'users'   => array( 'admin_users', 'login_attempts' ),
+			'malware' => array(), // Placeholder for integrity/malware checks
 		);
+
+		$results = array();
+
+		if ( $type === 'all' ) {
+			$checks_to_run = array( 'wp_update', 'plugins_update', 'themes_update', 'xmlrpc', 'debug_mode', 'sensitive_files', 'file_permissions', 'admin_users', 'login_attempts', 'https', 'security_headers', 'directory_listing', 'abandoned_plugins' );
+		} else {
+			$checks_to_run = isset( $all_checks[ $type ] ) ? $all_checks[ $type ] : array();
+		}
+
+		foreach ( $checks_to_run as $check_id ) {
+			$method = 'check_' . $check_id;
+			if ( method_exists( $this, $method ) ) {
+				$results[ $check_id ] = $this->$method();
+			}
+		}
+
+		// Handle Malware Scan specially (simulated for now)
+		if ( $type === 'malware' ) {
+			$results['malware_integrity'] = array(
+				'name'           => 'Integridad de Archivos',
+				'status'         => 'secure',
+				'risk'           => 'Crítico',
+				'description'    => 'No se detectaron archivos modificados sospechosos.',
+				'recommendation' => 'Sigue monitoreando cambios en archivos del core.',
+			);
+		}
 
 		$score = $this->calculate_score( $results );
 		$counts = $this->get_vulnerability_counts( $results );

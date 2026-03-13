@@ -16,7 +16,12 @@
         initTrendChart();
 
         $('#run-scan-btn').on('click', function() {
-            runScan();
+            runScan('all');
+        });
+
+        $('#run-specific-scan').on('click', function() {
+            const type = $(this).data('type');
+            runScan(type);
         });
 
         $(document).on('click', '.view-scan-detail', function() {
@@ -133,8 +138,9 @@
         $('#scoreText').text(score + '%').css('color', color);
     }
 
-    function runScan() {
-        $('#run-scan-btn').prop('disabled', true).addClass('opacity-50 cursor-not-allowed');
+    function runScan(type = 'all') {
+        const btn = type === 'all' ? $('#run-scan-btn') : $('#run-specific-scan');
+        btn.prop('disabled', true).addClass('opacity-50 cursor-not-allowed');
         $('#scan-loader').removeClass('hidden');
 
         $.ajax({
@@ -142,7 +148,8 @@
             type: 'POST',
             data: {
                 action: 'alma_run_scan',
-                nonce: alma_ajax.nonce
+                nonce: alma_ajax.nonce,
+                type: type
             },
             success: function(response) {
                 if (response.success) {
@@ -159,13 +166,44 @@
                 alert('Ocurrió un error al procesar el escaneo.');
             },
             complete: function() {
-                $('#run-scan-btn').prop('disabled', false).removeClass('opacity-50 cursor-not-allowed');
+                btn.prop('disabled', false).removeClass('opacity-50 cursor-not-allowed');
                 $('#scan-loader').addClass('hidden');
             }
         });
     }
 
     function updateUI(data) {
+        const hasScoreChart = !!document.getElementById('scoreChart');
+        const hasSpecificContainer = !!document.getElementById('scan-results-container');
+        const hasVulnTable = !!document.getElementById('vulnerabilities-table-body');
+
+        if (hasSpecificContainer) {
+            renderSpecificResults(data);
+        }
+
+        if (!hasScoreChart) {
+            if (hasVulnTable) {
+                // Populate vulnerabilities table if we are on that page
+                let tableHtml = '';
+                Object.values(data.vulnerabilities).forEach(v => {
+                    const statusColor = v.status === 'secure' ? 'text-green-500' : (v.status === 'warning' ? 'text-yellow-500' : 'text-red-500');
+                    const riskColor = v.risk === 'Crítico' ? 'text-red-600 font-bold' : (v.risk === 'Medio' ? 'text-yellow-600' : 'text-blue-600');
+                    const alertIcon = `<svg class="h-4 w-4 ${statusColor}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        ${v.status === 'secure' ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />' : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />'}
+                    </svg>`;
+                    tableHtml += `
+                        <tr class="${v.status !== 'secure' ? 'bg-red-50' : ''}">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"><div class="flex items-center">${alertIcon}<span class="ml-2">${v.name}</span></div></td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm ${riskColor}">${v.risk}</td>
+                            <td class="px-6 py-4 text-sm text-gray-500"><div class="font-bold text-gray-700 mb-1">${v.status.toUpperCase()}</div><div class="text-xs leading-tight">${v.description}</div></td>
+                            <td class="px-6 py-4 text-sm text-blue-700 font-medium">${v.recommendation}</td>
+                        </tr>`;
+                });
+                $('#vulnerabilities-table-body').html(tableHtml);
+            }
+            return;
+        }
+
         // Update Chart
         initChart(data.score);
 
@@ -327,6 +365,35 @@
                 text.addClass('text-red-600').text('Vulnerable');
             }
         });
+    }
+
+    function renderSpecificResults(data) {
+        let html = '<div class="grid grid-cols-1 gap-6">';
+        Object.values(data.vulnerabilities).forEach(v => {
+            const statusColor = v.status === 'secure' ? 'text-green-500' : (v.status === 'warning' ? 'text-yellow-500' : 'text-red-500');
+            const alertIcon = `<svg class="h-8 w-8 ${statusColor}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                ${v.status === 'secure' ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />' : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />'}
+            </svg>`;
+
+            html += `
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-start">
+                    <div class="mr-6">${alertIcon}</div>
+                    <div class="flex-grow">
+                        <div class="flex justify-between items-start">
+                            <h4 class="text-xl font-bold text-gray-800">${v.name}</h4>
+                            <span class="text-xs font-bold uppercase px-3 py-1 rounded-full bg-gray-100 text-gray-500">${v.risk}</span>
+                        </div>
+                        <p class="text-gray-600 mt-2">${v.description}</p>
+                        <div class="mt-4 p-4 bg-blue-50 rounded-2xl">
+                            <span class="text-xs font-bold text-blue-600 uppercase">Recomendación</span>
+                            <p class="text-sm text-blue-800 mt-1 font-medium">${v.recommendation}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+        $('#scan-results-container').html(html);
     }
 
     function updateMiniHistory() {
