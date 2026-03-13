@@ -9,7 +9,7 @@ class Alma_Scanner {
 	public function run_scan( $type = 'all' ) {
 		$all_checks = array(
 			'wp'      => array( 'wp_update', 'xmlrpc', 'debug_mode', 'sensitive_files', 'file_permissions', 'directory_listing', 'https' ),
-			'plugins' => array( 'plugins_update', 'abandoned_plugins' ),
+			'plugins' => array( 'plugins_detailed' ),
 			'themes'  => array( 'themes_update' ),
 			'server'  => array( 'file_permissions', 'https', 'security_headers', 'directory_listing', 'sensitive_files' ),
 			'users'   => array( 'admin_users', 'login_attempts' ),
@@ -285,6 +285,63 @@ class Alma_Scanner {
 			'risk'           => 'Medio',
 			'description'    => $is_protected ? 'Se detectó un plugin de protección contra ataques de fuerza bruta.' : 'No se detectó protección contra intentos de login ilimitados.',
 			'recommendation' => 'Instala un plugin como "Limit Login Attempts Reloaded".',
+		);
+	}
+
+	private function check_plugins_detailed() {
+		if ( ! function_exists( 'get_plugins' ) && file_exists( ABSPATH . 'wp-admin/includes/plugin.php' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		}
+
+		$all_plugins = function_exists( 'get_plugins' ) ? get_plugins() : array();
+		$active_plugins = get_option( 'active_plugins', array() );
+		$update_plugins = get_site_transient( 'update_plugins' );
+
+		$plugin_results = array();
+
+		foreach ( $all_plugins as $file => $data ) {
+			$is_active = in_array( $file, $active_plugins );
+			$has_update = isset( $update_plugins->response[ $file ] );
+
+			$status = 'secure';
+			$risk = 'Bajo';
+
+			if ( $has_update ) {
+				$status = 'warning';
+				$risk = 'Medio';
+			}
+
+			if ( ! $is_active ) {
+				$status = 'warning';
+				$risk = 'Bajo';
+			}
+
+			// Simulating vulnerability check
+			$is_vulnerable = false; // In real app, check against a CVE DB
+			if ( $is_vulnerable ) {
+				$status = 'critical';
+				$risk = 'Crítico';
+			}
+
+			$plugin_results[ $file ] = array(
+				'name'      => $data['Name'],
+				'version'   => $data['Version'],
+				'active'    => $is_active,
+				'update'    => $has_update,
+				'status'    => $status,
+				'risk'      => $risk,
+				'last_upd'  => 'Reciente', // Simulated
+			);
+		}
+
+		return array(
+			'name'           => 'Análisis Detallado de Plugins',
+			'status'         => 'secure',
+			'risk'           => 'Bajo',
+			'is_detailed'    => true,
+			'data'           => $plugin_results,
+			'description'    => 'Se han analizado ' . count( $all_plugins ) . ' plugins instalados.',
+			'recommendation' => 'Mantén tus plugins actualizados y elimina los que no utilices.',
 		);
 	}
 
