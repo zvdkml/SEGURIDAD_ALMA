@@ -11,7 +11,7 @@ class Alma_Scanner {
 			'wp'      => array( 'wp_update', 'xmlrpc', 'debug_mode', 'sensitive_files', 'file_permissions', 'directory_listing', 'https' ),
 			'plugins' => array( 'plugins_detailed' ),
 			'themes'  => array( 'themes_detailed' ),
-			'server'  => array( 'file_permissions', 'https', 'security_headers', 'directory_listing', 'sensitive_files' ),
+			'server'  => array( 'php_version', 'file_permissions', 'https', 'security_headers', 'directory_listing', 'sensitive_files', 'server_config' ),
 			'users'   => array( 'admin_users', 'login_attempts' ),
 			'malware' => array(), // Placeholder for integrity/malware checks
 		);
@@ -253,6 +253,18 @@ class Alma_Scanner {
 		);
 	}
 
+	private function check_php_version() {
+		$version = PHP_VERSION;
+		$is_secure = version_compare( $version, '8.1', '>=' );
+		return array(
+			'name'           => 'Versión de PHP',
+			'status'         => $is_secure ? 'secure' : 'warning',
+			'risk'           => 'Medio',
+			'description'    => "Tu servidor ejecuta PHP $version. " . ( $is_secure ? 'Es una versión moderna y segura.' : 'Es una versión antigua que podría no recibir parches de seguridad.' ),
+			'recommendation' => 'Actualiza PHP a la versión 8.1 o superior en tu panel de hosting.',
+		);
+	}
+
 	private function check_https() {
 		$is_https = is_ssl();
 		return array(
@@ -261,6 +273,20 @@ class Alma_Scanner {
 			'risk'           => 'Crítico',
 			'description'    => $is_https ? 'El sitio web utiliza una conexión segura mediante HTTPS.' : 'El sitio no utiliza HTTPS, los datos se transmiten en texto plano.',
 			'recommendation' => 'Instala un certificado SSL y configura el sitio para que use HTTPS obligatoriamente.',
+		);
+	}
+
+	private function check_server_config() {
+		$server = isset( $_SERVER['SERVER_SOFTWARE'] ) ? $_SERVER['SERVER_SOFTWARE'] : 'Desconocido';
+		$display_errors = ini_get( 'display_errors' );
+		$is_secure = ( $display_errors === '0' || strtolower( $display_errors ) === 'off' );
+
+		return array(
+			'name'           => 'Configuración del Servidor',
+			'status'         => $is_secure ? 'secure' : 'warning',
+			'risk'           => 'Medio',
+			'description'    => "Servidor: $server. Visualización de errores PHP: " . ( $is_secure ? 'Desactivado (Correcto)' : 'Activado (Riesgo)' ),
+			'recommendation' => 'Asegúrate de que "display_errors" esté desactivado en producción para no exponer rutas del servidor.',
 		);
 	}
 
