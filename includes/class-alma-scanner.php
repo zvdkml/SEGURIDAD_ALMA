@@ -8,7 +8,7 @@ class Alma_Scanner {
 
 	public function run_scan( $type = 'all' ) {
 		$all_checks = array(
-			'wp'      => array( 'wp_update', 'xmlrpc', 'debug_mode' ),
+			'wp'      => array( 'wp_update', 'xmlrpc', 'debug_mode', 'sensitive_files', 'file_permissions', 'directory_listing', 'https' ),
 			'plugins' => array( 'plugins_update', 'abandoned_plugins' ),
 			'themes'  => array( 'themes_update' ),
 			'server'  => array( 'file_permissions', 'https', 'security_headers', 'directory_listing', 'sensitive_files' ),
@@ -143,24 +143,31 @@ class Alma_Scanner {
 	}
 
 	private function check_file_permissions() {
-		$file = ABSPATH . 'wp-config.php';
-		if ( ! file_exists( $file ) ) {
-			return array(
-				'name'           => 'Permisos de Archivos',
-				'status'         => 'warning',
-				'risk'           => 'Medio',
-				'description'    => 'No se pudo encontrar wp-config.php para verificar sus permisos.',
-				'recommendation' => 'Asegúrate de que wp-config.php exista y tenga permisos restrictivos.',
-			);
+		$files_to_check = array(
+			'wp-config.php' => '644',
+			'.htaccess'     => '644',
+			'index.php'     => '644',
+			'wp-content'    => '755',
+		);
+
+		$issues = array();
+		foreach ( $files_to_check as $file => $expected ) {
+			$path = ABSPATH . $file;
+			if ( file_exists( $path ) ) {
+				$perms = substr( sprintf( '%o', fileperms( $path ) ), -3 );
+				if ( $perms > $expected ) {
+					$issues[] = "$file ($perms)";
+				}
+			}
 		}
-		$wp_config_perms = substr( sprintf( '%o', fileperms( $file ) ), -3 );
-		$is_secure = ( $wp_config_perms == '400' || $wp_config_perms == '440' || $wp_config_perms == '600' || $wp_config_perms == '640' || $wp_config_perms == '644' );
+
+		$is_secure = empty( $issues );
 		return array(
 			'name'           => 'Permisos de Archivos',
 			'status'         => $is_secure ? 'secure' : 'warning',
 			'risk'           => 'Medio',
-			'description'    => "Los permisos actuales de wp-config.php son $wp_config_perms.",
-			'recommendation' => 'Configura los permisos de wp-config.php a 644 o 600 para mayor seguridad.',
+			'description'    => $is_secure ? 'Los archivos principales tienen permisos correctos.' : 'Se detectaron permisos inseguros en: ' . implode( ', ', $issues ),
+			'recommendation' => 'Asegúrate de que los archivos tengan permisos restrictivos (644 para archivos, 755 para carpetas).',
 		);
 	}
 
