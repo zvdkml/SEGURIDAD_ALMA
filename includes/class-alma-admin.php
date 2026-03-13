@@ -32,74 +32,11 @@ class Alma_Admin {
 
 		add_submenu_page(
 			'alma-security',
-			'Dashboard',
-			'Dashboard',
+			'Security Dashboard',
+			'Security Dashboard',
 			'manage_options',
 			'alma-security',
 			array( $this, 'render_dashboard' )
-		);
-
-		add_submenu_page(
-			'alma-security',
-			'WordPress Core Scan',
-			'WordPress Core Scan',
-			'manage_options',
-			'alma-scan-wp',
-			array( $this, 'render_scan_page' )
-		);
-
-		add_submenu_page(
-			'alma-security',
-			'Plugin Security Scan',
-			'Plugin Security Scan',
-			'manage_options',
-			'alma-scan-plugins',
-			array( $this, 'render_scan_page' )
-		);
-
-		add_submenu_page(
-			'alma-security',
-			'Theme Security Scan',
-			'Theme Security Scan',
-			'manage_options',
-			'alma-scan-themes',
-			array( $this, 'render_scan_page' )
-		);
-
-		add_submenu_page(
-			'alma-security',
-			'Server Security Scan',
-			'Server Security Scan',
-			'manage_options',
-			'alma-scan-server',
-			array( $this, 'render_scan_page' )
-		);
-
-		add_submenu_page(
-			'alma-security',
-			'User Security Scan',
-			'User Security Scan',
-			'manage_options',
-			'alma-scan-users',
-			array( $this, 'render_scan_page' )
-		);
-
-		add_submenu_page(
-			'alma-security',
-			'Malware Scan',
-			'Malware Scan',
-			'manage_options',
-			'alma-scan-malware',
-			array( $this, 'render_scan_page' )
-		);
-
-		add_submenu_page(
-			'alma-security',
-			'Vulnerabilidades',
-			'Vulnerabilidades',
-			'manage_options',
-			'alma-vulnerabilities',
-			array( $this, 'render_vulnerabilities' )
 		);
 
 		add_submenu_page(
