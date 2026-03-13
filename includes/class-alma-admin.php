@@ -41,8 +41,8 @@ class Alma_Admin {
 
 		add_submenu_page(
 			'alma-security',
-			'Scan WordPress',
-			'Scan WordPress',
+			'WordPress Core Scan',
+			'WordPress Core Scan',
 			'manage_options',
 			'alma-scan-wp',
 			array( $this, 'render_scan_page' )
@@ -50,8 +50,8 @@ class Alma_Admin {
 
 		add_submenu_page(
 			'alma-security',
-			'Scan Plugins',
-			'Scan Plugins',
+			'Plugin Security Scan',
+			'Plugin Security Scan',
 			'manage_options',
 			'alma-scan-plugins',
 			array( $this, 'render_scan_page' )
@@ -59,8 +59,8 @@ class Alma_Admin {
 
 		add_submenu_page(
 			'alma-security',
-			'Scan Themes',
-			'Scan Themes',
+			'Theme Security Scan',
+			'Theme Security Scan',
 			'manage_options',
 			'alma-scan-themes',
 			array( $this, 'render_scan_page' )
@@ -68,8 +68,8 @@ class Alma_Admin {
 
 		add_submenu_page(
 			'alma-security',
-			'Scan Server',
-			'Scan Server',
+			'Server Security Scan',
+			'Server Security Scan',
 			'manage_options',
 			'alma-scan-server',
 			array( $this, 'render_scan_page' )
@@ -77,8 +77,8 @@ class Alma_Admin {
 
 		add_submenu_page(
 			'alma-security',
-			'Scan Users',
-			'Scan Users',
+			'User Security Scan',
+			'User Security Scan',
 			'manage_options',
 			'alma-scan-users',
 			array( $this, 'render_scan_page' )
@@ -166,12 +166,12 @@ class Alma_Admin {
 		$type = str_replace( 'alma-scan-', '', $page );
 
 		$titles = array(
-			'wp'      => 'WordPress Security Scan',
-			'plugins' => 'Plugins Security Scan',
-			'themes'  => 'Themes Security Scan',
-			'server'  => 'Server & Network Scan',
-			'users'   => 'User Access Scan',
-			'malware' => 'Malware & File Integrity Scan',
+			'wp'      => 'WordPress Core Scan',
+			'plugins' => 'Plugin Security Scan',
+			'themes'  => 'Theme Security Scan',
+			'server'  => 'Server Security Scan',
+			'users'   => 'User Security Scan',
+			'malware' => 'Malware Security Scan',
 		);
 
 		$title = isset( $titles[ $type ] ) ? $titles[ $type ] : 'Security Scan';

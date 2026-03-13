@@ -8,11 +8,11 @@ class Alma_Scanner {
 
 	public function run_scan( $type = 'all' ) {
 		$all_checks = array(
-			'wp'      => array( 'wp_update', 'xmlrpc', 'debug_mode', 'sensitive_files', 'file_permissions', 'directory_listing', 'https' ),
+			'wp'      => array( 'wp_update', 'debug_mode', 'xmlrpc', 'sensitive_files', 'server_config' ),
 			'plugins' => array( 'plugins_detailed' ),
 			'themes'  => array( 'themes_detailed' ),
-			'server'  => array( 'php_version', 'file_permissions', 'https', 'security_headers', 'directory_listing', 'sensitive_files', 'server_config' ),
-			'users'   => array( 'admin_users', 'admin_count', 'password_policy', 'login_attempts' ),
+			'server'  => array( 'php_version', 'security_headers', 'https', 'file_permissions', 'directory_listing' ),
+			'users'   => array( 'admin_users', 'admin_count', 'login_attempts' ),
 			'malware' => array( 'malware_scan' ),
 		);
 

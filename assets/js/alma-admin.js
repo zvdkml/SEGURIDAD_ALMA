@@ -186,7 +186,7 @@
                 // Populate vulnerabilities table if we are on that page
                 let tableHtml = '';
                 Object.values(data.vulnerabilities).forEach(v => {
-                    const statusColor = v.status === 'secure' ? 'text-green-500' : (v.status === 'warning' ? 'text-yellow-500' : 'text-red-500');
+                    const statusColor = v.status === 'secure' ? 'text-green-500' : (v.status === 'warning' ? 'text-orange-500' : 'text-red-500');
                     const riskColor = v.risk === 'Crítico' ? 'text-red-600 font-bold' : (v.risk === 'Medio' ? 'text-yellow-600' : 'text-blue-600');
                     const alertIcon = `<svg class="h-4 w-4 ${statusColor}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         ${v.status === 'secure' ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />' : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />'}
@@ -210,18 +210,18 @@
         // Update Risk Level
         const riskEl = $('#risk-level');
         riskEl.text(data.level);
-        riskEl.removeClass('bg-gray-200 text-gray-500 bg-green-100 text-green-800 bg-yellow-100 text-yellow-800 bg-red-100 text-red-800');
+        riskEl.removeClass('bg-gray-200 text-gray-500 bg-green-100 text-green-800 bg-orange-100 text-orange-800 bg-red-100 text-red-800');
 
         if (data.score >= 80) riskEl.addClass('bg-green-100 text-green-800');
-        else if (data.score >= 50) riskEl.addClass('bg-yellow-100 text-yellow-800');
+        else if (data.score >= 50) riskEl.addClass('bg-orange-100 text-orange-800');
         else riskEl.addClass('bg-red-100 text-red-800');
 
         // Update Progress Bar
         const progress = $('#score-progress');
         progress.css('width', data.score + '%');
-        progress.removeClass('bg-gray-300 bg-green-500 bg-yellow-500 bg-red-500');
+        progress.removeClass('bg-gray-300 bg-green-500 bg-orange-500 bg-red-500');
         if (data.score >= 80) progress.addClass('bg-green-500');
-        else if (data.score >= 50) progress.addClass('bg-yellow-500');
+        else if (data.score >= 50) progress.addClass('bg-orange-500');
         else progress.addClass('bg-red-500');
 
         // Update Last Scan
@@ -258,8 +258,8 @@
         let criticalCount = 0;
 
         Object.values(data.vulnerabilities).forEach(v => {
-            const statusColor = v.status === 'secure' ? 'text-green-500' : (v.status === 'warning' ? 'text-yellow-500' : 'text-red-500');
-            const riskColor = v.risk === 'Crítico' ? 'text-red-600 font-bold' : (v.risk === 'Medio' ? 'text-yellow-600' : 'text-blue-600');
+            const statusColor = v.status === 'secure' ? 'text-green-500' : (v.status === 'warning' ? 'text-orange-500' : 'text-red-500');
+            const riskColor = v.risk === 'Crítico' ? 'text-red-600 font-bold' : (v.risk === 'Medio' ? 'text-orange-600' : 'text-blue-600');
 
             const alertIcon = `
                 <svg class="h-4 w-4 ${statusColor}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -331,14 +331,13 @@
     function updateSystemStatusCards(vulns) {
         const checks = {
             wp: ['wp_update'],
-            plugins: ['plugins_update', 'abandoned_plugins'],
+            plugins: ['plugins_detailed'],
             security: ['xmlrpc', 'debug_mode', 'sensitive_files', 'file_permissions', 'https', 'security_headers', 'directory_listing'],
             users: ['admin_users', 'login_attempts']
         };
 
         Object.keys(checks).forEach(key => {
             let status = 'secure';
-            let label = 'Seguro';
 
             checks[key].forEach(checkId => {
                 const check = vulns[checkId];
@@ -351,15 +350,15 @@
             const badge = $('#status-badge-' + key);
             const text = $('#status-text-' + key);
 
-            badge.removeClass('bg-gray-300 bg-green-500 bg-yellow-500 bg-red-500');
-            text.removeClass('text-gray-800 text-green-600 text-yellow-600 text-red-600');
+            badge.removeClass('bg-gray-300 bg-green-500 bg-orange-500 bg-red-500');
+            text.removeClass('text-gray-800 text-green-600 text-orange-600 text-red-600');
 
             if (status === 'secure') {
                 badge.addClass('bg-green-500');
                 text.addClass('text-green-600').text('Protegido');
             } else if (status === 'warning') {
-                badge.addClass('bg-yellow-500');
-                text.addClass('text-yellow-600').text('Atención');
+                badge.addClass('bg-orange-500');
+                text.addClass('text-orange-600').text('Atención');
             } else {
                 badge.addClass('bg-red-500');
                 text.addClass('text-red-600').text('Vulnerable');
@@ -374,33 +373,54 @@
         if (detailed) {
             if (detailed.name.includes('Plugins')) {
                 renderPluginSpecificResults(detailed.data);
+                return;
             } else if (detailed.name.includes('Temas')) {
                 renderThemeSpecificResults(detailed.data);
+                return;
             } else if (detailed.is_malware) {
                 renderMalwareResults(detailed);
+                return;
             }
-            return;
         }
 
-        let html = '<div class="grid grid-cols-1 gap-6">';
+        let html = '<div class="space-y-6">';
         Object.values(data.vulnerabilities).forEach(v => {
-            const statusColor = v.status === 'secure' ? 'text-green-500' : (v.status === 'warning' ? 'text-yellow-500' : 'text-red-500');
-            const alertIcon = `<svg class="h-8 w-8 ${statusColor}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                ${v.status === 'secure' ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />' : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />'}
-            </svg>`;
+            const statusColor = v.status === 'secure' ? 'text-green-500' : (v.status === 'warning' ? 'text-orange-500' : 'text-red-500');
+            const bgColor = v.status === 'secure' ? 'bg-green-50' : (v.status === 'warning' ? 'bg-orange-50' : 'bg-red-50');
+            const borderColor = v.status === 'secure' ? 'border-green-100' : (v.status === 'warning' ? 'border-orange-100' : 'border-red-100');
+            const statusLabel = v.status === 'secure' ? 'Verde' : (v.status === 'warning' ? 'Naranja' : 'Rojo');
+
+            const alertIcon = `
+                <svg class="h-10 w-10 ${statusColor}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    ${v.status === 'secure'
+                        ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />'
+                        : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />'}
+                </svg>`;
 
             html += `
-                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-start">
-                    <div class="mr-6">${alertIcon}</div>
-                    <div class="flex-grow">
-                        <div class="flex justify-between items-start">
-                            <h4 class="text-xl font-bold text-gray-800">${v.name}</h4>
-                            <span class="text-xs font-bold uppercase px-3 py-1 rounded-full bg-gray-100 text-gray-500">${v.risk}</span>
-                        </div>
-                        <p class="text-gray-600 mt-2">${v.description}</p>
-                        <div class="mt-4 p-4 bg-blue-50 rounded-2xl">
-                            <span class="text-xs font-bold text-blue-600 uppercase">Recomendación</span>
-                            <p class="text-sm text-blue-800 mt-1 font-medium">${v.recommendation}</p>
+                <div class="bg-white p-8 rounded-3xl shadow-sm border-2 ${borderColor} transition-all hover:shadow-md">
+                    <div class="flex items-start">
+                        <div class="mr-6 bg-white p-2 rounded-2xl shadow-sm border border-gray-50">${alertIcon}</div>
+                        <div class="flex-grow">
+                            <div class="flex justify-between items-center mb-2">
+                                <h4 class="text-2xl font-black text-gray-900 tracking-tight">${v.name}</h4>
+                                <div class="flex items-center">
+                                    <span class="text-xs font-bold mr-2 uppercase text-gray-400">Estado:</span>
+                                    <span class="px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest ${bgColor} ${statusColor}">
+                                        ${statusLabel}
+                                    </span>
+                                </div>
+                            </div>
+                            <p class="text-gray-600 text-lg leading-relaxed">${v.description}</p>
+                            <div class="mt-6 p-6 ${bgColor} rounded-[1.5rem] border border-white/50">
+                                <div class="flex items-center mb-2">
+                                    <svg class="h-4 w-4 ${statusColor} mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span class="text-xs font-black ${statusColor} uppercase tracking-widest">Recomendación de Solución</span>
+                                </div>
+                                <p class="text-gray-800 font-bold leading-snug">${v.recommendation}</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -428,7 +448,7 @@
 
         Object.values(themes).forEach(t => {
             const statusColor = t.status === 'secure' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700';
-            const riskColor = t.risk === 'Crítico' ? 'text-red-600' : (t.risk === 'Medio' ? 'text-yellow-600' : 'text-blue-600');
+            const riskColor = t.risk === 'Crítico' ? 'text-red-600' : (t.risk === 'Medio' ? 'text-orange-600' : 'text-blue-600');
 
             html += `
                 <tr class="hover:bg-gray-50 transition-colors">
@@ -517,7 +537,7 @@
 
         Object.values(plugins).forEach(p => {
             const statusColor = p.status === 'secure' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700';
-            const riskColor = p.risk === 'Crítico' ? 'text-red-600' : (p.risk === 'Medio' ? 'text-yellow-600' : 'text-blue-600');
+            const riskColor = p.risk === 'Crítico' ? 'text-red-600' : (p.risk === 'Medio' ? 'text-orange-600' : 'text-blue-600');
 
             html += `
                 <tr class="hover:bg-gray-50 transition-colors">
@@ -549,7 +569,7 @@
         let html = '';
         alma_ajax.history.slice(0, 5).forEach((h, i) => {
             const date = new Date(h.timestamp * 1000);
-            const color = h.score >= 80 ? 'text-green-500' : (h.score >= 50 ? 'text-yellow-500' : 'text-red-500');
+            const color = h.score >= 80 ? 'text-green-500' : (h.score >= 50 ? 'text-orange-500' : 'text-red-500');
 
             html += `
                 <div class="flex items-center justify-between p-4 rounded-2xl bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer view-scan-detail" data-index="${i}">
