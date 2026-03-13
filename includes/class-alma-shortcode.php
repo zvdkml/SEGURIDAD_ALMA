@@ -31,7 +31,12 @@ class Alma_Shortcode {
 					<h3 style="margin: 0; font-size: 22px; color: #111827; font-weight: 900; letter-spacing: -0.025em;">Alma Security</h3>
 					<p style="margin: 4px 0 0; font-size: 12px; color: #9ca3af; font-weight: 600; text-transform: uppercase; tracking: 0.05em;">Estado de Protección</p>
 				</div>
-				<div style="background: <?php echo $bg_color; ?>; padding: 6px 12px; border-radius: 12px; color: <?php echo $color; ?>; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em;"><?php echo $level; ?></div>
+				<?php
+				$status_text = 'Seguro';
+				if ($latest_scan['score'] < 50) $status_text = 'Crítico';
+				elseif ($latest_scan['score'] < 80) $status_text = 'Advertencia';
+				?>
+				<div style="background: <?php echo $bg_color; ?>; padding: 6px 12px; border-radius: 12px; color: <?php echo $color; ?>; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em;"><?php echo $status_text; ?></div>
 			</div>
 
 			<div style="display: flex; align-items: center; gap: 32px; margin-bottom: 32px; background: #f9fafb; padding: 24px; border-radius: 32px;">
