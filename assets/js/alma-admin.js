@@ -13,6 +13,11 @@
             initChart(0);
         }
 
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('auto_scan') === '1') {
+            runScan('all');
+        }
+
         $('#run-scan-btn').on('click', function() {
             runScan('all');
         });
