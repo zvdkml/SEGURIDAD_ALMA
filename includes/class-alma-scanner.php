@@ -19,7 +19,14 @@ class Alma_Scanner {
 		$results = array();
 
 		if ( $type === 'all' ) {
-			$checks_to_run = array( 'wp_update', 'plugins_update', 'themes_update', 'xmlrpc', 'debug_mode', 'sensitive_files', 'file_permissions', 'admin_users', 'login_attempts', 'https', 'security_headers', 'directory_listing', 'abandoned_plugins' );
+			$checks_to_run = array(
+				'wp_update', 'xmlrpc', 'debug_mode',
+				'plugins_detailed',
+				'themes_detailed',
+				'php_version', 'file_permissions', 'https', 'security_headers', 'directory_listing', 'sensitive_files', 'server_config',
+				'admin_users', 'admin_count', 'password_policy', 'login_attempts',
+				'malware_scan'
+			);
 		} else {
 			$checks_to_run = isset( $all_checks[ $type ] ) ? $all_checks[ $type ] : array();
 		}
