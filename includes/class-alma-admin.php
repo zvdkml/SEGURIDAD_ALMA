@@ -98,35 +98,6 @@ class Alma_Admin {
 		include ALMA_SECURITY_PATH . 'templates/dashboard.php';
 	}
 
-	public function render_scan_page() {
-		$page = isset( $_GET['page'] ) ? sanitize_text_field( $_GET['page'] ) : '';
-		$type = str_replace( 'alma-scan-', '', $page );
-
-		$titles = array(
-			'wp'      => 'WordPress Core Scan',
-			'plugins' => 'Plugin Security Scan',
-			'themes'  => 'Theme Security Scan',
-			'server'  => 'Server Security Scan',
-			'users'   => 'User Security Scan',
-			'malware' => 'Malware Security Scan',
-		);
-
-		$title = isset( $titles[ $type ] ) ? $titles[ $type ] : 'Security Scan';
-
-		include ALMA_SECURITY_PATH . 'templates/scan-generic.php';
-	}
-
-	public function render_vulnerabilities() {
-		$history = new Alma_History();
-		$scan_index = isset( $_GET['scan_index'] ) ? intval( $_GET['scan_index'] ) : -1;
-		if ( $scan_index !== -1 ) {
-			$history_data = $history->get_history();
-			$latest_scan = isset( $history_data[ $scan_index ] ) ? $history_data[ $scan_index ] : $history->get_latest_scan();
-		} else {
-			$latest_scan = $history->get_latest_scan();
-		}
-		include ALMA_SECURITY_PATH . 'templates/vulnerabilities.php';
-	}
 
 	public function render_history() {
 		$history = new Alma_History();

@@ -2,16 +2,16 @@
     'use strict';
 
     let scoreChart = null;
-    let trendChart = null;
     let distributionChart = null;
 
     $(document).ready(function() {
-        if (alma_ajax.latest_scan) {
+        if (alma_ajax.scan_index !== -1 && alma_ajax.history && alma_ajax.history[alma_ajax.scan_index]) {
+            updateUI(alma_ajax.history[alma_ajax.scan_index], 'history');
+        } else if (alma_ajax.latest_scan) {
             updateUI(alma_ajax.latest_scan);
         } else {
             initChart(0);
         }
-        initTrendChart();
 
         $('#run-scan-btn').on('click', function() {
             runScan('all');
@@ -26,50 +26,7 @@
             const index = $(this).data('index');
             window.location.href = '?page=alma-security&scan_index=' + index;
         });
-
-        $('#close-details').on('click', function() {
-            $('#detailed-results-section').addClass('hidden');
-        });
     });
-
-    function initTrendChart() {
-        const ctx = document.getElementById('trendChart');
-        if (!ctx || !alma_ajax.history || alma_ajax.history.length === 0) return;
-
-        if (trendChart) {
-            trendChart.destroy();
-        }
-
-        const history = [...alma_ajax.history].reverse();
-        const labels = history.map(h => new Date(h.timestamp * 1000).toLocaleDateString());
-        const scores = history.map(h => h.score);
-
-        trendChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Security Score',
-                    data: scores,
-                    borderColor: '#2563eb',
-                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: { beginAtZero: true, max: 100 },
-                    x: { display: false }
-                },
-                plugins: {
-                    legend: { display: false }
-                }
-            }
-        });
-    }
 
     function initDistributionChart(counts) {
         const ctx = document.getElementById('distributionChart');
@@ -80,21 +37,30 @@
         }
 
         distributionChart = new Chart(ctx, {
-            type: 'doughnut',
+            type: 'bar',
             data: {
                 labels: ['Bajo', 'Medio', 'Crítico'],
                 datasets: [{
                     data: [counts.bajo || 0, counts.medio || 0, counts.critico || 0],
-                    backgroundColor: ['#3B82F6', '#F59E0B', '#EF4444'],
-                    borderWidth: 0
+                    backgroundColor: ['#10B981', '#F59E0B', '#EF4444'],
+                    borderRadius: 10,
+                    barThickness: 30
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: '70%',
+                indexAxis: 'y',
                 plugins: {
-                    legend: { position: 'right' }
+                    legend: { display: false },
+                    tooltip: { enabled: true }
+                },
+                scales: {
+                    x: { display: false, beginAtZero: true },
+                    y: {
+                        grid: { display: false },
+                        ticks: { font: { weight: 'bold' } }
+                    }
                 }
             }
         });
@@ -115,7 +81,7 @@
             data: {
                 datasets: [{
                     data: [score, 100 - score],
-                    backgroundColor: [color, '#E5E7EB'],
+                    backgroundColor: [color, '#F3F4F6'],
                     borderWidth: 0,
                 }]
             },
@@ -151,7 +117,6 @@
                     if (!alma_ajax.history) alma_ajax.history = [];
                     alma_ajax.history.unshift(response.data);
                     updateUI(response.data, type);
-                    initTrendChart();
                 } else {
                     alert('Error: ' + response.data);
                 }
@@ -167,35 +132,32 @@
     }
 
     function updateUI(data, type = 'all') {
-        if (type === 'all') {
-            initChart(data.score);
+        initChart(data.score);
 
-            const riskEl = $('#risk-level');
-            riskEl.text(data.level);
-            riskEl.removeClass('bg-green-100 text-green-800 bg-orange-100 text-orange-800 bg-red-100 text-red-800');
-            if (data.score >= 80) riskEl.addClass('bg-green-100 text-green-800');
-            else if (data.score >= 50) riskEl.addClass('bg-orange-100 text-orange-800');
-            else riskEl.addClass('bg-red-100 text-red-800');
+        const riskEl = $('#risk-level');
+        riskEl.text(data.level);
+        riskEl.removeClass('bg-green-100 text-green-800 bg-orange-100 text-orange-800 bg-red-100 text-red-800');
+        if (data.score >= 80) riskEl.addClass('bg-green-100 text-green-800');
+        else if (data.score >= 50) riskEl.addClass('bg-orange-100 text-orange-800');
+        else riskEl.addClass('bg-red-100 text-red-800');
 
-            $('#score-progress').css('width', data.score + '%').removeClass('bg-green-500 bg-orange-500 bg-red-500');
-            if (data.score >= 80) $('#score-progress').addClass('bg-green-500');
-            else if (data.score >= 50) $('#score-progress').addClass('bg-orange-500');
-            else $('#score-progress').addClass('bg-red-500');
+        const date = new Date(data.timestamp * 1000);
+        $('#last-scan-info').text('Último análisis: ' + date.toLocaleString());
 
-            const date = new Date(data.timestamp * 1000);
-            $('#last-scan-info').text('Último análisis completo: ' + date.toLocaleString());
+        initDistributionChart(data.counts || {});
 
-            initDistributionChart(data.counts || {});
-
-            // Distribute results to cards
-            distributeResultsToCards(data.vulnerabilities);
+        // Populate category tables
+        if (type === 'all' || type === 'history') {
+            const categories = ['wp', 'plugins', 'themes', 'server', 'users', 'malware'];
+            categories.forEach(cat => {
+                populateCategoryTable(cat, data.vulnerabilities);
+            });
         } else {
-            // Update only the specific card results and the global score (simulated)
-            updateSpecificCard(type, data);
+            populateCategoryTable(type, data.vulnerabilities);
         }
     }
 
-    function distributeResultsToCards(vulns) {
+    function populateCategoryTable(category, vulns) {
         const mapping = {
             wp: ['wp_update', 'debug_mode', 'xmlrpc', 'sensitive_files', 'server_config'],
             plugins: ['plugins_detailed'],
@@ -205,71 +167,58 @@
             malware: ['malware_scan']
         };
 
-        Object.keys(mapping).forEach(key => {
-            let html = '';
-            let status = 'secure';
-            let issues = 0;
-
-            mapping[key].forEach(id => {
-                const v = vulns[id];
-                if (v) {
-                    if (v.status !== 'secure') {
-                        issues++;
-                        if (v.status === 'critical') status = 'critical';
-                        else if (status !== 'critical') status = 'warning';
-                    }
-
-                    const dotColor = v.status === 'secure' ? 'bg-green-500' : (v.status === 'warning' ? 'bg-orange-500' : 'bg-red-500');
-                    html += `<div class="flex items-center text-[10px] font-bold text-gray-600"><span class="w-1.5 h-1.5 rounded-full ${dotColor} mr-2"></span>${v.name}</div>`;
-                }
-            });
-
-            const badge = $('#status-badge-' + key);
-            badge.removeClass('bg-green-100 text-green-700 bg-orange-100 text-orange-700 bg-red-100 text-red-700 bg-gray-100 text-gray-400');
-            if (status === 'secure') badge.addClass('bg-green-100 text-green-700').text('Protegido');
-            else if (status === 'warning') badge.addClass('bg-orange-100 text-orange-700').text(issues + ' Avisos');
-            else badge.addClass('bg-red-100 text-red-700').text(issues + ' Críticos');
-
-            $('#results-' + key).html(html || '<p class="text-xs text-gray-300 italic">Sin datos.</p>');
-        });
-    }
-
-    function updateSpecificCard(type, data) {
-        distributeResultsToCards(data.vulnerabilities);
-        renderDetailedResults(data.vulnerabilities);
-    }
-
-    function renderDetailedResults(vulns) {
         let html = '';
-        Object.values(vulns).forEach(v => {
-            if (v.is_detailed || v.is_malware) return; // Skip complex results in generic detail list
+        const checkIds = mapping[category] || [];
 
-            const statusColor = v.status === 'secure' ? 'text-green-500' : (v.status === 'warning' ? 'text-orange-500' : 'text-red-500');
-            const bgColor = v.status === 'secure' ? 'bg-green-50' : (v.status === 'warning' ? 'bg-orange-50' : 'bg-red-50');
-            const borderColor = v.status === 'secure' ? 'border-green-100' : (v.status === 'warning' ? 'border-orange-100' : 'border-red-100');
-            const statusLabel = v.status === 'secure' ? 'Verde' : (v.status === 'warning' ? 'Naranja' : 'Rojo');
+        checkIds.forEach(id => {
+            const v = vulns[id];
+            if (!v) return;
 
-            html += `
-                <div class="bg-white p-6 rounded-3xl shadow-sm border-2 ${borderColor}">
-                    <div class="flex items-center justify-between mb-4">
-                        <h4 class="text-xl font-black text-gray-900">${v.name}</h4>
-                        <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${bgColor} ${statusColor}">${statusLabel}</span>
-                    </div>
-                    <p class="text-gray-600 text-sm mb-4">${v.description}</p>
-                    <div class="p-4 ${bgColor} rounded-2xl border border-white">
-                        <p class="text-xs text-gray-800 font-bold">${v.recommendation}</p>
-                    </div>
-                </div>
-            `;
+            // Handle sub-data if it exists (like for plugins_detailed or themes_detailed)
+            if (v.is_detailed) {
+                Object.values(v.data).forEach(item => {
+                    html += buildTableRow(item.name, item.status, 'Versión: ' + item.version, 'Revisar actualizaciones.');
+                });
+            } else if (v.is_malware) {
+                 if (v.findings && v.findings.length > 0) {
+                     v.findings.forEach(f => {
+                         html += buildTableRow(f.file, 'critical', f.issue, 'Eliminar código sospechoso.');
+                     });
+                 } else {
+                     html += buildTableRow(v.name, v.status, v.description, v.recommendation);
+                 }
+            } else {
+                html += buildTableRow(v.name, v.status, v.description, v.recommendation);
+            }
         });
 
-        $('#detailed-results-container').html(html);
-        $('#detailed-results-section').removeClass('hidden');
+        $('#table-results-' + category).html(html || '<tr><td colspan="4" class="px-10 py-8 text-center text-gray-400">No se encontraron problemas en esta sección.</td></tr>');
+    }
 
-        // Scroll to details
-        $('html, body').animate({
-            scrollTop: $("#detailed-results-section").offset().top - 50
-        }, 500);
+    function buildTableRow(name, status, desc, rec) {
+        const statusColor = status === 'secure' ? 'text-green-600' : (status === 'warning' ? 'text-orange-600' : 'text-red-600');
+        const bgColor = status === 'secure' ? 'bg-green-100' : (status === 'warning' ? 'bg-orange-100' : 'bg-red-100');
+        const statusLabel = status === 'secure' ? 'Verde' : (status === 'warning' ? 'Naranja' : 'Rojo');
+        const icon = status === 'secure'
+            ? '<svg class="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>'
+            : '<svg class="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>';
+
+        return `
+            <tr class="hover:bg-gray-50/50 transition-colors">
+                <td class="px-10 py-6 text-gray-900 font-bold tracking-tight">${name}</td>
+                <td class="px-10 py-6 text-center">
+                    <span class="inline-flex items-center px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${bgColor} ${statusColor}">
+                        ${icon} ${statusLabel}
+                    </span>
+                </td>
+                <td class="px-10 py-6 text-gray-500 text-sm leading-relaxed max-w-xs">${desc}</td>
+                <td class="px-10 py-6">
+                    <div class="p-4 rounded-2xl bg-gray-50 border border-gray-100 text-xs font-bold text-gray-700 leading-snug">
+                        ${rec}
+                    </div>
+                </td>
+            </tr>
+        `;
     }
 
 })(jQuery);
