@@ -73,6 +73,12 @@ if (!function_exists('get_stylesheet_directory')) {
     }
 }
 
+class Mock_DB {
+    public $prefix = 'wp_';
+}
+global $wpdb;
+$wpdb = new Mock_DB();
+
 if (!defined('WP_CONTENT_DIR')) {
     define('WP_CONTENT_DIR', __DIR__);
 }

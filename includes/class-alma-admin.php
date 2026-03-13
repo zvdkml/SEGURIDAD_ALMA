@@ -73,14 +73,21 @@ class Alma_Admin {
 		wp_enqueue_script( 'alma-admin-js', ALMA_SECURITY_URL . 'assets/js/alma-admin.js', array( 'jquery', 'alma-chartjs' ), ALMA_SECURITY_VERSION, true );
 
 		$history = new Alma_History();
+		$scan_index = isset( $_GET['scan_index'] ) ? intval( $_GET['scan_index'] ) : -1;
+		$history_data = $history->get_history();
 		$latest_scan = $history->get_latest_scan();
 
+		$current_scan = $latest_scan;
+		if ( $scan_index !== -1 && isset( $history_data[ $scan_index ] ) ) {
+			$current_scan = $history_data[ $scan_index ];
+		}
+
 		wp_localize_script( 'alma-admin-js', 'alma_ajax', array(
-			'ajax_url'    => admin_url( 'admin-ajax.php' ),
-			'nonce'       => wp_create_nonce( 'alma_security_nonce' ),
-			'latest_scan' => $latest_scan,
-			'history'     => $history->get_history(),
-			'scan_index'  => isset( $_GET['scan_index'] ) ? intval( $_GET['scan_index'] ) : -1,
+			'ajax_url'     => admin_url( 'admin-ajax.php' ),
+			'nonce'        => wp_create_nonce( 'alma_security_nonce' ),
+			'latest_scan'  => $current_scan,
+			'history'      => $history_data,
+			'scan_index'   => $scan_index,
 		) );
 	}
 

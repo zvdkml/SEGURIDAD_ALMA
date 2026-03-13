@@ -153,7 +153,7 @@
 
         // Populate category tables
         if (type === 'all' || type === 'history') {
-            const categories = ['wp', 'plugins', 'themes', 'server', 'users', 'malware'];
+            const categories = ['wp', 'plugins', 'themes', 'server', 'users', 'malware', 'login', 'db', 'file_int', 'firewall', 'headers', 'backup', 'updates'];
             categories.forEach(cat => {
                 populateCategoryTable(cat, data.vulnerabilities);
             });
@@ -167,9 +167,16 @@
             wp: ['wp_update', 'debug_mode', 'xmlrpc', 'sensitive_files', 'server_config'],
             plugins: ['plugins_detailed'],
             themes: ['themes_detailed'],
-            server: ['php_version', 'security_headers', 'https', 'file_permissions', 'directory_listing'],
-            users: ['admin_users', 'admin_count', 'login_attempts'],
-            malware: ['malware_scan']
+            server: ['php_version', 'https', 'file_permissions', 'directory_listing'],
+            users: ['admin_users', 'admin_count'],
+            malware: ['malware_scan'],
+            login: ['login_attempts', 'hidden_login'],
+            db: ['db_prefix', 'db_remote'],
+            file_int: ['core_integrity'],
+            firewall: ['firewall_detect'],
+            headers: ['security_headers'],
+            backup: ['backup_detect'],
+            updates: ['wp_update', 'plugins_update', 'themes_update']
         };
 
         let html = '';
