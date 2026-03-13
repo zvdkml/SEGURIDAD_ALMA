@@ -12,7 +12,7 @@ class Alma_Scanner {
 			'plugins' => array( 'plugins_detailed' ),
 			'themes'  => array( 'themes_detailed' ),
 			'server'  => array( 'php_version', 'file_permissions', 'https', 'security_headers', 'directory_listing', 'sensitive_files', 'server_config' ),
-			'users'   => array( 'admin_users', 'login_attempts' ),
+			'users'   => array( 'admin_users', 'admin_count', 'password_policy', 'login_attempts' ),
 			'malware' => array(), // Placeholder for integrity/malware checks
 		);
 
@@ -245,11 +245,51 @@ class Alma_Scanner {
 		}
 		$is_secure = empty( $found_insecure );
 		return array(
-			'name'           => 'Usuarios Administradores',
+			'name'           => 'Nombre de Usuario Inseguro',
 			'status'         => $is_secure ? 'secure' : 'warning',
 			'risk'           => 'Crítico',
-			'description'    => $is_secure ? 'No se encontraron usuarios administradores con nombres genéricos.' : 'Se detectaron administradores con nombres inseguros (ej: admin).',
-			'recommendation' => 'Crea un nuevo administrador con un nombre único y elimina el usuario "admin".',
+			'description'    => $is_secure ? 'No se encontraron usuarios administradores con nombres genéricos.' : 'Se detectaron administradores con nombres inseguros (ej: ' . implode(', ', $found_insecure) . ').',
+			'recommendation' => 'Evita usar "admin" o nombres similares ya que son los primeros objetivos en ataques de fuerza bruta.',
+		);
+	}
+
+	private function check_admin_count() {
+		$args = array( 'role' => 'administrator' );
+		$users = get_users( $args );
+		$count = count( $users );
+		$is_secure = ( $count <= 2 );
+
+		return array(
+			'name'           => 'Cantidad de Administradores',
+			'status'         => $is_secure ? 'secure' : 'warning',
+			'risk'           => 'Medio',
+			'description'    => "Tienes $count usuarios con rol administrador.",
+			'recommendation' => 'Mantén el número de administradores al mínimo necesario para reducir riesgos internos.',
+		);
+	}
+
+	private function check_password_policy() {
+		$protection_plugins = array(
+			'wp-strong-password-policies/wp-strong-password-policies.php',
+			'force-strong-passwords/force-strong-passwords.php',
+			'password-policy-manager/password-policy-manager.php',
+		);
+
+		$active_plugins = get_option( 'active_plugins', array() );
+		$is_protected = false;
+		foreach ( $protection_plugins as $plugin ) {
+			if ( in_array( $plugin, $active_plugins ) ) {
+				$is_protected = true;
+				break;
+			}
+		}
+
+		return array(
+			'name'           => 'Política de Contraseñas',
+			'status'         => $is_protected ? 'secure' : 'warning',
+			'risk'           => 'Medio',
+			'description'    => $is_protected ? 'Se detectó una política de contraseñas fuertes activa.' : 'No se detectó un sistema que obligue el uso de contraseñas robustas.',
+			'recommendation' => 'Instala un plugin para obligar a los usuarios a usar contraseñas complejas.',
 		);
 	}
 
