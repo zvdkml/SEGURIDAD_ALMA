@@ -369,13 +369,15 @@
 
     function renderSpecificResults(data) {
         // Check if we have detailed data
-        const detailed = Object.values(data.vulnerabilities).find(v => v.is_detailed);
+        const detailed = Object.values(data.vulnerabilities).find(v => v.is_detailed || v.is_malware);
 
         if (detailed) {
             if (detailed.name.includes('Plugins')) {
                 renderPluginSpecificResults(detailed.data);
             } else if (detailed.name.includes('Temas')) {
                 renderThemeSpecificResults(detailed.data);
+            } else if (detailed.is_malware) {
+                renderMalwareResults(detailed);
             }
             return;
         }
@@ -449,6 +451,51 @@
         });
 
         html += '</tbody></table></div>';
+        $('#scan-results-container').html(html);
+    }
+
+    function renderMalwareResults(malware) {
+        let findingsHtml = '';
+        if (malware.findings && malware.findings.length > 0) {
+            malware.findings.forEach(f => {
+                findingsHtml += `
+                    <tr class="bg-red-50 hover:bg-red-100 transition-colors">
+                        <td class="px-8 py-6">
+                            <div class="text-red-800 font-bold font-mono text-xs">${f.file}</div>
+                        </td>
+                        <td class="px-8 py-6">
+                            <div class="text-gray-700 text-sm">${f.issue}</div>
+                        </td>
+                        <td class="px-8 py-6 text-right">
+                            <span class="text-xs font-black uppercase tracking-widest text-red-600">CRÍTICO</span>
+                        </td>
+                    </tr>
+                `;
+            });
+        } else {
+            findingsHtml = '<tr><td colspan="3" class="px-8 py-20 text-center text-green-500 font-bold">¡Genial! No se detectaron archivos sospechosos.</td></tr>';
+        }
+
+        let html = `
+            <div class="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-50 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                        <tr>
+                            <th class="px-8 py-6">Archivo</th>
+                            <th class="px-8 py-6">Problema Detectado</th>
+                            <th class="px-8 py-6 text-right">Riesgo</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50 font-medium">
+                        ${findingsHtml}
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-8 p-8 bg-blue-600 rounded-[2rem] text-white shadow-lg shadow-blue-100">
+                <h4 class="text-xl font-black uppercase tracking-tight mb-2">Recomendación Pro</h4>
+                <p class="text-blue-100">${malware.recommendation}</p>
+            </div>
+        `;
         $('#scan-results-container').html(html);
     }
 

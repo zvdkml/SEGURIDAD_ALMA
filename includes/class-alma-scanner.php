@@ -13,7 +13,7 @@ class Alma_Scanner {
 			'themes'  => array( 'themes_detailed' ),
 			'server'  => array( 'php_version', 'file_permissions', 'https', 'security_headers', 'directory_listing', 'sensitive_files', 'server_config' ),
 			'users'   => array( 'admin_users', 'admin_count', 'password_policy', 'login_attempts' ),
-			'malware' => array(), // Placeholder for integrity/malware checks
+			'malware' => array( 'malware_scan' ),
 		);
 
 		$results = array();
@@ -29,17 +29,6 @@ class Alma_Scanner {
 			if ( method_exists( $this, $method ) ) {
 				$results[ $check_id ] = $this->$method();
 			}
-		}
-
-		// Handle Malware Scan specially (simulated for now)
-		if ( $type === 'malware' ) {
-			$results['malware_integrity'] = array(
-				'name'           => 'Integridad de Archivos',
-				'status'         => 'secure',
-				'risk'           => 'Crítico',
-				'description'    => 'No se detectaron archivos modificados sospechosos.',
-				'recommendation' => 'Sigue monitoreando cambios en archivos del core.',
-			);
 		}
 
 		$score = $this->calculate_score( $results );
@@ -470,6 +459,60 @@ class Alma_Scanner {
 			'data'           => $plugin_results,
 			'description'    => 'Se han analizado ' . count( $all_plugins ) . ' plugins instalados.',
 			'recommendation' => 'Mantén tus plugins actualizados y elimina los que no utilices.',
+		);
+	}
+
+	private function check_malware_scan() {
+		$suspicious_patterns = array(
+			'base64_decode\s*\(' => 'Uso potencial de código ofuscado.',
+			'eval\s*\('          => 'Ejecución de código arbitrario detectada.',
+			'shell_exec\s*\('    => 'Ejecución de comandos del sistema.',
+			'gzinflate\s*\('     => 'Descompresión de código (común en malware).',
+			'str_rot13\s*\('     => 'Ofuscación de cadenas detectada.',
+		);
+
+		$directories_to_scan = array(
+			WP_CONTENT_DIR . '/uploads',
+			get_stylesheet_directory(),
+		);
+
+		$findings = array();
+
+		foreach ( $directories_to_scan as $dir ) {
+			if ( ! is_dir( $dir ) ) continue;
+
+			$files = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $dir ) );
+			foreach ( $files as $file ) {
+				if ( $file->isDir() || $file->getExtension() !== 'php' ) continue;
+
+				$content = file_get_contents( $file->getPathname() );
+				if ( ! $content ) continue;
+
+				foreach ( $suspicious_patterns as $pattern => $desc ) {
+					if ( preg_match( '/' . $pattern . '/i', $content ) ) {
+						$findings[] = array(
+							'file' => str_replace( ABSPATH, '', $file->getPathname() ),
+							'issue' => $desc,
+							'pattern' => $pattern
+						);
+					}
+				}
+
+				if ( count($findings) > 50 ) break; // Limit results
+			}
+			if ( count($findings) > 50 ) break;
+		}
+
+		$is_secure = empty( $findings );
+
+		return array(
+			'name'           => 'Escaneo de Malware',
+			'status'         => $is_secure ? 'secure' : 'critical',
+			'risk'           => 'Crítico',
+			'is_malware'     => true,
+			'findings'       => $findings,
+			'description'    => $is_secure ? 'No se detectaron patrones de código malicioso en las carpetas críticas.' : 'Se han encontrado archivos con código sospechoso.',
+			'recommendation' => $is_secure ? 'Realiza escaneos periódicos para mantener la integridad.' : 'Revisa manualmente los archivos listados y elimina cualquier código no reconocido.',
 		);
 	}
 
