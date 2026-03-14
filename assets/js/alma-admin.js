@@ -31,7 +31,31 @@
             const index = $(this).data('index');
             window.location.href = '?page=alma-security&scan_index=' + index;
         });
+
+        $(document).on('click', '.toggle-section-btn', function() {
+            const targetId = $(this).data('target');
+            toggleSection($('#' + targetId), $(this));
+        });
     });
+
+    function toggleSection(container, btn, forceOpen = false) {
+        if (forceOpen) {
+            container.addClass('is-open').css('max-height', '2000px');
+            btn.addClass('is-active text-blue-600 bg-blue-50');
+            btn.find('svg').addClass('rotate-180');
+            return;
+        }
+
+        if (container.hasClass('is-open')) {
+            container.removeClass('is-open').css('max-height', '0');
+            btn.removeClass('is-active text-blue-600 bg-blue-50');
+            btn.find('svg').removeClass('rotate-180');
+        } else {
+            container.addClass('is-open').css('max-height', '2000px');
+            btn.addClass('is-active text-blue-600 bg-blue-50');
+            btn.find('svg').addClass('rotate-180');
+        }
+    }
 
     function initDistributionChart(counts) {
         const ctx = document.getElementById('distributionChart');
@@ -107,6 +131,12 @@
     function runScan(type = 'all') {
         const btn = type === 'all' ? $('#run-scan-btn') : $(`.run-specific-scan-btn[data-type="${type}"]`);
         btn.prop('disabled', true).addClass('opacity-50 cursor-not-allowed');
+
+        if (type !== 'all') {
+            const toggleBtn = $(`.toggle-section-btn[data-target="section-${type}"]`);
+            toggleSection($(`#section-${type}`), toggleBtn, true);
+        }
+
         $('#scan-loader').removeClass('hidden');
 
         $.ajax({

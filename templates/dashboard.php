@@ -89,31 +89,40 @@
                         <p class="text-gray-400 font-bold text-[10px] uppercase mt-1 tracking-[0.2em]">Auditoría avanzada de <?php echo strtolower($data['title']); ?></p>
                     </div>
                 </div>
-                <button data-type="<?php echo $key; ?>" class="run-specific-scan-btn bg-gray-900 hover:bg-blue-600 text-white font-black py-4 px-10 rounded-2xl transition-all shadow-xl shadow-gray-200 hover:shadow-blue-200 uppercase text-xs tracking-widest">
-                    ESCANEAR SECCIÓN
-                </button>
+                <div class="flex items-center space-x-4">
+                    <button data-type="<?php echo $key; ?>" class="run-specific-scan-btn bg-gray-900 hover:bg-blue-600 text-white font-black py-4 px-8 rounded-2xl transition-all shadow-xl shadow-gray-200 hover:shadow-blue-200 uppercase text-[10px] tracking-widest">
+                        ESCANEAR
+                    </button>
+                    <button class="toggle-section-btn p-3 bg-gray-100 hover:bg-gray-200 rounded-2xl transition-all duration-300 group/toggle" data-target="section-<?php echo $key; ?>">
+                        <svg class="h-5 w-5 text-gray-600 transform transition-transform duration-300 group-[.is-active]/toggle:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                </div>
             </div>
 
-            <!-- Results Table -->
-            <div class="p-4">
-                <div class="overflow-x-auto rounded-[2.5rem] border border-gray-50">
-                    <table class="w-full text-left border-collapse">
-                        <thead class="bg-gray-50/50 text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">
-                            <tr>
-                                <th class="px-10 py-8 border-b border-gray-100">Verificación</th>
-                                <th class="px-10 py-8 border-b border-gray-100 text-center">Estado</th>
-                                <th class="px-10 py-8 border-b border-gray-100">Descripción</th>
-                                <th class="px-10 py-8 border-b border-gray-100">Recomendación</th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-results-<?php echo $key; ?>" class="divide-y divide-gray-50 font-medium">
-                            <tr>
-                                <td colspan="4" class="px-10 py-24 text-center text-gray-300 italic text-xl font-medium tracking-tight">
-                                    Listo para iniciar la auditoría de esta sección.
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+            <!-- Results Table Content -->
+            <div id="section-<?php echo $key; ?>" class="section-content-wrapper overflow-hidden transition-all duration-500 max-h-0">
+                <div class="p-8 pt-0">
+                    <div class="overflow-x-auto rounded-[2.5rem] border border-gray-100 bg-gray-50/30">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-white/50 text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">
+                                <tr>
+                                    <th class="px-10 py-6 border-b border-gray-100">Verificación</th>
+                                    <th class="px-10 py-6 border-b border-gray-100 text-center">Estado</th>
+                                    <th class="px-10 py-6 border-b border-gray-100">Descripción</th>
+                                    <th class="px-10 py-6 border-b border-gray-100">Recomendación</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-results-<?php echo $key; ?>" class="divide-y divide-gray-100 font-medium bg-white/40">
+                                <tr>
+                                    <td colspan="4" class="px-10 py-16 text-center text-gray-300 italic text-lg font-medium tracking-tight">
+                                        Sección contraída. Haz clic en escanear o expande para ver detalles.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
