@@ -28,8 +28,20 @@
                     <label class="ml-2 block text-sm text-gray-900 font-medium">Habilitar envío automático a API externa</label>
                 </div>
 
-                <div class="pt-4">
-                    <?php submit_button( 'Guardar Configuración', 'primary', 'submit', false, array( 'class' => 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-200' ) ); ?>
+                <div class="pt-10 border-t border-gray-100">
+                    <h2 class="text-xl font-bold text-gray-800 mb-6">Monitoreo Remoto (Central Monitor)</h2>
+
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Endpoint de Central Monitor</label>
+                            <input type="url" name="alma_security_monitor_endpoint" value="<?php echo esc_attr( get_option( 'alma_security_monitor_endpoint', 'https://api.midominio.com/site-data' ) ); ?>" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="https://monitor.tudominio.com/site-data">
+                            <p class="text-xs text-gray-400 mt-1">URL del servidor Node.js/Central Monitor.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-8">
+                    <?php submit_button( 'Guardar Todas las Configuraciones', 'primary', 'submit', false, array( 'class' => 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg transition duration-200' ) ); ?>
                 </div>
             </div>
         </form>

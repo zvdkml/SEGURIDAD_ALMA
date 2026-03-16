@@ -102,6 +102,8 @@ class Alma_Scanner {
 		$update_themes = get_site_transient( 'update_themes' );
 
 		$theme_results = array();
+		$overall_status = 'secure';
+		$overall_risk = 'Bajo';
 
 		foreach ( $all_themes as $slug => $theme ) {
 			$is_active = ( $slug === $active_theme->get_stylesheet() );
@@ -135,6 +137,14 @@ class Alma_Scanner {
 				$risk = 'Crítico';
 			}
 
+			if ( $status === 'critical' ) {
+				$overall_status = 'critical';
+				$overall_risk = 'Crítico';
+			} elseif ( $status === 'warning' && $overall_status !== 'critical' ) {
+				$overall_status = 'warning';
+				$overall_risk = 'Medio';
+			}
+
 			$theme_results[ $slug ] = array(
 				'name'      => $theme->get( 'Name' ),
 				'version'   => $theme->get( 'Version' ),
@@ -149,8 +159,8 @@ class Alma_Scanner {
 
 		return array(
 			'name'           => 'Análisis Detallado de Temas',
-			'status'         => 'secure',
-			'risk'           => 'Bajo',
+			'status'         => $overall_status,
+			'risk'           => $overall_risk,
 			'is_detailed'    => true,
 			'data'           => $theme_results,
 			'description'    => 'Se han analizado ' . count( $all_themes ) . ' temas instalados.',
@@ -436,6 +446,8 @@ class Alma_Scanner {
 		$update_plugins = get_site_transient( 'update_plugins' );
 
 		$plugin_results = array();
+		$overall_status = 'secure';
+		$overall_risk = 'Bajo';
 
 		foreach ( $all_plugins as $file => $data ) {
 			$is_active = in_array( $file, $active_plugins );
@@ -461,6 +473,14 @@ class Alma_Scanner {
 				$risk = 'Crítico';
 			}
 
+			if ( $status === 'critical' ) {
+				$overall_status = 'critical';
+				$overall_risk = 'Crítico';
+			} elseif ( $status === 'warning' && $overall_status !== 'critical' ) {
+				$overall_status = 'warning';
+				$overall_risk = 'Medio';
+			}
+
 			$plugin_results[ $file ] = array(
 				'name'      => $data['Name'],
 				'version'   => $data['Version'],
@@ -474,8 +494,8 @@ class Alma_Scanner {
 
 		return array(
 			'name'           => 'Análisis Detallado de Plugins',
-			'status'         => 'secure',
-			'risk'           => 'Bajo',
+			'status'         => $overall_status,
+			'risk'           => $overall_risk,
 			'is_detailed'    => true,
 			'data'           => $plugin_results,
 			'description'    => 'Se han analizado ' . count( $all_plugins ) . ' plugins instalados.',
@@ -649,6 +669,7 @@ class Alma_Scanner {
 
 	private function calculate_score( $results ) {
 		$total_checks = count( $results );
+		if ( $total_checks === 0 ) return 0;
 		$secure_checks = 0;
 		foreach ( $results as $check ) {
 			if ( $check['status'] === 'secure' ) {
