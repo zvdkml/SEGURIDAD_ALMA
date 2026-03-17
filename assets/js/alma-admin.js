@@ -216,18 +216,18 @@
         row.find('.check-description').text(data.description).removeClass('italic');
 
         const badge = row.find('.check-status-badge');
-        badge.removeClass('bg-gray-200 text-gray-500 bg-green-100 text-green-800 bg-orange-100 text-orange-800 bg-red-100 text-red-800');
+        badge.removeClass('bg-gray-100 text-gray-400 bg-gray-200 text-gray-500 bg-green-100 text-green-800 bg-yellow-100 text-yellow-800 bg-red-100 text-red-800 shadow-sm border border-gray-200/50');
 
         let label = 'Desconocido';
         if (data.status === 'secure') {
-            badge.addClass('bg-green-100 text-green-800');
-            label = 'Seguro';
+            badge.addClass('bg-green-100 text-green-800 border-green-200');
+            label = 'OK';
         } else if (data.status === 'warning') {
-            badge.addClass('bg-orange-100 text-orange-800');
-            label = 'Advertencia';
+            badge.addClass('bg-yellow-100 text-yellow-800 border-yellow-200');
+            label = 'Warning';
         } else if (data.status === 'critical') {
-            badge.addClass('bg-red-100 text-red-800');
-            label = 'Crítico';
+            badge.addClass('bg-red-100 text-red-800 border-red-200');
+            label = 'Error';
         }
         badge.text(label);
 
@@ -237,7 +237,7 @@
         }
 
         if (data.last_scan_at) {
-            row.find('.check-last-scan').text(data.last_scan_at).removeClass('hidden');
+            row.find('.check-last-scan').text(data.last_scan_at);
         }
     }
 

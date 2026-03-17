@@ -177,30 +177,47 @@
             <!-- Results Table Content -->
             <div id="section-<?php echo $key; ?>" class="section-content-wrapper overflow-hidden transition-all duration-500 max-h-0">
                 <div class="p-8 pt-0">
-                    <div class="space-y-4">
-                        <?php foreach ( $data['checks'] as $check_id ) : ?>
-                        <div id="check-row-<?php echo $check_id; ?>" class="bg-gray-50/30 border border-gray-100 rounded-3xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all hover:bg-white hover:shadow-md group/row">
-                            <div class="flex-1">
-                                <div class="flex items-center gap-3">
-                                    <h4 class="text-lg font-bold text-gray-800 check-name">--</h4>
-                                    <span class="check-status-badge inline-flex items-center px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-gray-200 text-gray-500">
-                                        Pendiente
-                                    </span>
-                                </div>
-                                <p class="text-sm text-gray-500 mt-1 check-description italic">No se ha realizado el escaneo.</p>
-                                <div class="mt-3 hidden check-recommendation-box">
-                                    <span class="text-[10px] font-black text-blue-600 uppercase tracking-widest block mb-1">Recomendación</span>
-                                    <p class="text-xs text-gray-600 font-medium check-recommendation bg-blue-50/50 p-3 rounded-xl border border-blue-100/50"></p>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-[10px] font-bold text-gray-300 uppercase check-last-scan hidden">Nunca</span>
-                                <button data-check="<?php echo $check_id; ?>" data-section="<?php echo $key; ?>" class="run-individual-scan-btn bg-white border border-gray-200 hover:border-blue-500 hover:text-blue-600 text-gray-600 font-bold py-2 px-6 rounded-xl transition-all shadow-sm text-[10px] uppercase tracking-widest whitespace-nowrap">
-                                    Escanear
-                                </button>
-                            </div>
-                        </div>
-                        <?php endforeach; ?>
+                    <div class="overflow-x-auto rounded-[2.5rem] border border-gray-100 bg-white shadow-inner">
+                        <table class="w-full text-left border-collapse table-fixed">
+                            <thead>
+                                <tr class="bg-gray-50/80 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">
+                                    <th class="px-8 py-5 w-1/4">Nombre de la verificación</th>
+                                    <th class="px-8 py-5 w-1/6 text-center">Estado</th>
+                                    <th class="px-8 py-5 w-1/3">Resultado</th>
+                                    <th class="px-8 py-5 w-1/6 text-center">Último escaneo</th>
+                                    <th class="px-8 py-5 w-1/6 text-right">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50 font-medium">
+                                <?php foreach ( $data['checks'] as $check_id ) : ?>
+                                <tr id="check-row-<?php echo $check_id; ?>" class="group/row hover:bg-gray-50/30 transition-colors">
+                                    <td class="px-8 py-6">
+                                        <div class="font-bold text-gray-800 check-name">--</div>
+                                        <div class="text-[9px] text-gray-400 uppercase tracking-tighter mt-1 font-black opacity-0 group-hover/row:opacity-100 transition-opacity">ID: <?php echo $check_id; ?></div>
+                                    </td>
+                                    <td class="px-8 py-6 text-center">
+                                        <span class="check-status-badge inline-flex items-center px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-gray-100 text-gray-400 shadow-sm border border-gray-200/50">
+                                            Pendiente
+                                        </span>
+                                    </td>
+                                    <td class="px-8 py-6">
+                                        <p class="text-xs text-gray-500 leading-relaxed check-description italic line-clamp-2">No se ha realizado el escaneo.</p>
+                                        <div class="mt-2 hidden check-recommendation-box">
+                                            <p class="text-[9px] text-blue-600 font-bold check-recommendation bg-blue-50/50 px-2 py-1 rounded-lg border border-blue-100/50 inline-block"></p>
+                                        </div>
+                                    </td>
+                                    <td class="px-8 py-6 text-center">
+                                        <span class="text-[10px] font-bold text-gray-300 uppercase check-last-scan">Nunca</span>
+                                    </td>
+                                    <td class="px-8 py-6 text-right">
+                                        <button data-check="<?php echo $check_id; ?>" data-section="<?php echo $key; ?>" class="run-individual-scan-btn bg-gray-900 hover:bg-blue-600 text-white font-black py-2.5 px-6 rounded-xl transition-all shadow-lg shadow-gray-200 hover:shadow-blue-200 text-[10px] uppercase tracking-widest whitespace-nowrap active:scale-95">
+                                            Scan
+                                        </button>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
