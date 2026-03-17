@@ -88,6 +88,11 @@
         if (role === 'admin') {
             $('#delete-data-btn').removeClass('hidden');
         }
+
+        // Check if we are in frontend (some elements might be restricted by WP theme)
+        if ($('#alma-frontend-dashboard').length > 0) {
+            $('.alma-security-wrap').removeClass('pr-4'); // Remove admin-specific spacing
+        }
     }
 
     function deleteScanData() {

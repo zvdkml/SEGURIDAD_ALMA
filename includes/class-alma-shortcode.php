@@ -8,6 +8,68 @@ class Alma_Shortcode {
 
 	public function __construct() {
 		add_shortcode( 'alma_security_status', array( $this, 'render_shortcode' ) );
+		add_shortcode( 'alma_security_dashboard', array( $this, 'render_dashboard' ) );
+	}
+
+	public function render_dashboard() {
+		if ( ! is_user_logged_in() ) {
+			return '<div style="padding: 50px; text-align: center; background: #fff; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); font-family: sans-serif;">
+				<h2 style="font-weight: 900; color: #111827; margin-bottom: 20px;">Acceso Restringido</h2>
+				<p style="color: #6b7280; margin-bottom: 30px;">Debes iniciar sesión para acceder al dashboard de seguridad.</p>
+				<a href="' . wp_login_url( get_permalink() ) . '" style="display: inline-block; background: #111827; color: #fff; padding: 15px 30px; border-radius: 15px; text-decoration: none; font-weight: 700;">Iniciar Sesión</a>
+			</div>';
+		}
+
+		// Enqueue scripts/styles for frontend
+		$this->enqueue_frontend_assets();
+
+		$history = new Alma_History();
+		$latest_scan = $history->get_latest_scan();
+
+		ob_start();
+		echo '<div id="alma-frontend-dashboard" class="alma-security-dashboard-frontend" style="min-height: 100vh; background: #f9fafb;">';
+		include ALMA_SECURITY_PATH . 'templates/dashboard.php';
+		echo '</div>';
+		return ob_get_clean();
+	}
+
+	private function enqueue_frontend_assets() {
+		wp_enqueue_style( 'alma-tailwind', 'https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css' );
+		wp_enqueue_script( 'alma-chartjs', 'https://cdn.jsdelivr.net/npm/chart.js', array(), null, true );
+		wp_enqueue_script( 'alma-admin-js', ALMA_SECURITY_URL . 'assets/js/alma-admin.js', array( 'jquery', 'alma-chartjs' ), ALMA_SECURITY_VERSION, true );
+
+		$history = new Alma_History();
+		$latest_scan = $history->get_latest_scan();
+		$db = new Alma_DB();
+		$db_results = $db->get_all_results();
+		$score_history = $db->get_score_history();
+		$history_data = $history->get_history();
+
+		$persisted_results = array();
+		foreach ( $db_results as $row ) {
+			$persisted_results[ $row['check_id'] ] = array(
+				'name'           => $row['check_name'],
+				'status'         => $row['status'],
+				'description'    => $row['result'],
+				'recommendation' => $row['recommendation'],
+				'risk_level'     => $row['risk_level'],
+				'last_scan_at'   => $row['last_scan_at']
+			);
+		}
+
+		$auth = new Alma_Auth();
+		$current_role = $auth->get_current_user_role();
+
+		wp_localize_script( 'alma-admin-js', 'alma_ajax', array(
+			'ajax_url'     => admin_url( 'admin-ajax.php' ),
+			'nonce'        => wp_create_nonce( 'alma_security_nonce' ),
+			'latest_scan'  => $latest_scan,
+			'history'      => $history_data,
+			'scan_index'   => -1,
+			'db_results'   => $persisted_results,
+			'user_role'    => $current_role,
+			'score_history'=> $score_history,
+		) );
 	}
 
 	public function render_shortcode() {

@@ -49,6 +49,7 @@ class Seguridad_Alma {
 
 	private function init_hooks() {
 		add_action( 'plugins_loaded', array( $this, 'init' ) );
+		add_action( 'init', array( $this, 'create_security_page' ) );
 		register_activation_hook( __FILE__, array( $this, 'activate' ) );
 		register_deactivation_hook( __FILE__, array( $this, 'deactivate' ) );
 	}
@@ -69,6 +70,25 @@ class Seguridad_Alma {
 	public function deactivate() {
 		if ( class_exists( 'Alma_Cron' ) ) {
 			Alma_Cron::deactivate();
+		}
+	}
+
+	public function create_security_page() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		$page_path = 'security';
+		$page_exists = get_page_by_path( $page_path );
+
+		if ( ! $page_exists ) {
+			$page_id = wp_insert_post( array(
+				'post_title'   => 'Security Dashboard',
+				'post_name'    => $page_path,
+				'post_content' => '[alma_security_dashboard]',
+				'post_status'  => 'publish',
+				'post_type'    => 'page',
+			) );
 		}
 	}
 }
