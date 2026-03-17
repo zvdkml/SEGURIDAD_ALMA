@@ -5,6 +5,13 @@
     let distributionChart = null;
 
     $(document).ready(function() {
+        // Load persisted results if available
+        if (alma_ajax.db_results && Object.keys(alma_ajax.db_results).length > 0) {
+            Object.keys(alma_ajax.db_results).forEach(checkId => {
+                updateCheckUI(checkId, alma_ajax.db_results[checkId]);
+            });
+        }
+
         if (alma_ajax.scan_index !== -1 && alma_ajax.history && alma_ajax.history[alma_ajax.scan_index]) {
             updateUI(alma_ajax.history[alma_ajax.scan_index], 'history');
         } else if (alma_ajax.latest_scan) {
@@ -35,6 +42,12 @@
         $(document).on('click', '.toggle-section-btn', function() {
             const targetId = $(this).data('target');
             toggleSection($('#' + targetId), $(this));
+        });
+
+        $(document).on('click', '.run-individual-scan-btn', function() {
+            const checkId = $(this).data('check');
+            const section = $(this).data('section');
+            runIndividualScan(checkId, section, $(this));
         });
     });
 
@@ -128,6 +141,67 @@
         $('#scoreText').text(score + '%').css('color', color);
     }
 
+    function runIndividualScan(checkId, type, btn) {
+        btn.prop('disabled', true).addClass('opacity-50 cursor-not-allowed').text('ESCANEANDO...');
+
+        $.ajax({
+            url: alma_ajax.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'alma_run_scan',
+                nonce: alma_ajax.nonce,
+                type: type,
+                check_id: checkId
+            },
+            success: function(response) {
+                if (response.success && response.data.vulnerabilities[checkId]) {
+                    updateCheckUI(checkId, response.data.vulnerabilities[checkId]);
+                } else {
+                    alert('Error al escanear: ' + (response.data || 'Respuesta inválida'));
+                }
+            },
+            error: function() {
+                alert('Ocurrió un error al procesar el escaneo individual.');
+            },
+            complete: function() {
+                btn.prop('disabled', false).removeClass('opacity-50 cursor-not-allowed').text('RE-ESCANEAR');
+            }
+        });
+    }
+
+    function updateCheckUI(checkId, data) {
+        const row = $(`#check-row-${checkId}`);
+        if (!row.length) return;
+
+        row.find('.check-name').text(data.name);
+        row.find('.check-description').text(data.description).removeClass('italic');
+
+        const badge = row.find('.check-status-badge');
+        badge.removeClass('bg-gray-200 text-gray-500 bg-green-100 text-green-800 bg-orange-100 text-orange-800 bg-red-100 text-red-800');
+
+        let label = 'Desconocido';
+        if (data.status === 'secure') {
+            badge.addClass('bg-green-100 text-green-800');
+            label = 'Seguro';
+        } else if (data.status === 'warning') {
+            badge.addClass('bg-orange-100 text-orange-800');
+            label = 'Advertencia';
+        } else if (data.status === 'critical') {
+            badge.addClass('bg-red-100 text-red-800');
+            label = 'Crítico';
+        }
+        badge.text(label);
+
+        if (data.recommendation) {
+            row.find('.check-recommendation').text(data.recommendation);
+            row.find('.check-recommendation-box').removeClass('hidden');
+        }
+
+        if (data.last_scan_at) {
+            row.find('.check-last-scan').text(data.last_scan_at).removeClass('hidden');
+        }
+    }
+
     function runScan(type = 'all') {
         const btn = type === 'all' ? $('#run-scan-btn') : $(`.run-specific-scan-btn[data-type="${type}"]`);
         btn.prop('disabled', true).addClass('opacity-50 cursor-not-allowed');
@@ -181,60 +255,12 @@
 
         initDistributionChart(data.counts || {});
 
-        // Populate category tables
-        if (type === 'all' || type === 'history') {
-            const categories = ['wp', 'plugins', 'themes', 'server', 'users', 'malware', 'login', 'db', 'file_int', 'firewall', 'headers', 'backup', 'updates'];
-            categories.forEach(cat => {
-                populateCategoryTable(cat, data.vulnerabilities);
+        // Update all individual check UIs if they were returned
+        if (data.vulnerabilities) {
+            Object.keys(data.vulnerabilities).forEach(checkId => {
+                updateCheckUI(checkId, data.vulnerabilities[checkId]);
             });
-        } else {
-            populateCategoryTable(type, data.vulnerabilities);
         }
-    }
-
-    function populateCategoryTable(category, vulns) {
-        const mapping = {
-            wp: ['wp_update', 'debug_mode', 'xmlrpc', 'sensitive_files', 'server_config'],
-            plugins: ['plugins_detailed'],
-            themes: ['themes_detailed'],
-            server: ['php_version', 'https', 'file_permissions', 'directory_listing'],
-            users: ['admin_users', 'admin_count'],
-            malware: ['malware_scan'],
-            login: ['login_attempts', 'hidden_login'],
-            db: ['db_prefix', 'db_remote'],
-            file_int: ['core_integrity'],
-            firewall: ['firewall_detect'],
-            headers: ['security_headers'],
-            backup: ['backup_detect'],
-            updates: ['wp_update', 'plugins_update', 'themes_update']
-        };
-
-        let html = '';
-        const checkIds = mapping[category] || [];
-
-        checkIds.forEach(id => {
-            const v = vulns[id];
-            if (!v) return;
-
-            // Handle sub-data if it exists (like for plugins_detailed or themes_detailed)
-            if (v.is_detailed) {
-                Object.values(v.data).forEach(item => {
-                    html += buildTableRow(item.name, item.status, 'Versión: ' + item.version, 'Revisar actualizaciones.');
-                });
-            } else if (v.is_malware) {
-                 if (v.findings && v.findings.length > 0) {
-                     v.findings.forEach(f => {
-                         html += buildTableRow(f.file, 'critical', f.issue, 'Eliminar código sospechoso.');
-                     });
-                 } else {
-                     html += buildTableRow(v.name, v.status, v.description, v.recommendation);
-                 }
-            } else {
-                html += buildTableRow(v.name, v.status, v.description, v.recommendation);
-            }
-        });
-
-        $('#table-results-' + category).html(html || '<tr><td colspan="4" class="px-10 py-8 text-center text-gray-400">No se encontraron problemas en esta sección.</td></tr>');
     }
 
     function buildTableRow(name, status, desc, rec) {

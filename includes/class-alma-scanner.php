@@ -6,7 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class Alma_Scanner {
 
-	public function run_scan( $type = 'all' ) {
+	public function run_scan( $type = 'all', $check_id = '' ) {
 		$all_checks = array(
 			'wp'      => array( 'wp_update', 'debug_mode', 'xmlrpc', 'sensitive_files', 'server_config' ),
 			'plugins' => array( 'plugins_detailed' ),
@@ -25,7 +25,9 @@ class Alma_Scanner {
 
 		$results = array();
 
-		if ( $type === 'all' ) {
+		if ( ! empty( $check_id ) ) {
+			$checks_to_run = array( $check_id );
+		} elseif ( $type === 'all' ) {
 			$checks_to_run = array(
 				'wp_update', 'xmlrpc', 'debug_mode', 'sensitive_files',
 				'plugins_detailed',
@@ -464,13 +466,6 @@ class Alma_Scanner {
 			if ( ! $is_active ) {
 				$status = 'warning';
 				$risk = 'Bajo';
-			}
-
-			// Simulating vulnerability check
-			$is_vulnerable = false; // In real app, check against a CVE DB
-			if ( $is_vulnerable ) {
-				$status = 'critical';
-				$risk = 'Crítico';
 			}
 
 			if ( $status === 'critical' ) {

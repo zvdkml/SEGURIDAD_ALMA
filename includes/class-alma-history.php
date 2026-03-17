@@ -8,7 +8,12 @@ class Alma_History {
 
 	private $option_name = 'alma_security_history';
 
-	public function save_scan( $data ) {
+	public function save_scan( $data, $type = 'all' ) {
+		// Only save to history if it's a full scan
+		if ( $type !== 'all' ) {
+			return;
+		}
+
 		$history = get_option( $this->option_name, array() );
 
 		// Add new scan at the beginning

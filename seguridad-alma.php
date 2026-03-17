@@ -33,19 +33,42 @@ class Seguridad_Alma {
 	}
 
 	private function includes() {
+		require_once ALMA_SECURITY_PATH . 'includes/class-alma-db.php';
 		require_once ALMA_SECURITY_PATH . 'includes/class-alma-scanner.php';
 		require_once ALMA_SECURITY_PATH . 'includes/class-alma-admin.php';
 		require_once ALMA_SECURITY_PATH . 'includes/class-alma-history.php';
 		require_once ALMA_SECURITY_PATH . 'includes/class-alma-api.php';
 		require_once ALMA_SECURITY_PATH . 'includes/class-alma-shortcode.php';
+
+		// Monitoring Modules
+		require_once ALMA_SECURITY_PATH . 'includes/data-collector.php';
+		require_once ALMA_SECURITY_PATH . 'includes/api-sender.php';
+		require_once ALMA_SECURITY_PATH . 'includes/cron.php';
 	}
 
 	private function init_hooks() {
 		add_action( 'plugins_loaded', array( $this, 'init' ) );
+		register_activation_hook( __FILE__, array( $this, 'activate' ) );
+		register_deactivation_hook( __FILE__, array( $this, 'deactivate' ) );
 	}
 
 	public function init() {
-		// Initialization logic
+		if ( class_exists( 'Alma_Cron' ) ) {
+			new Alma_Cron();
+		}
+	}
+
+	public function activate() {
+		Alma_DB::create_tables();
+		if ( class_exists( 'Alma_Cron' ) ) {
+			Alma_Cron::activate();
+		}
+	}
+
+	public function deactivate() {
+		if ( class_exists( 'Alma_Cron' ) ) {
+			Alma_Cron::deactivate();
+		}
 	}
 }
 

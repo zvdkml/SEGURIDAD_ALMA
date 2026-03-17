@@ -82,12 +82,26 @@ class Alma_Admin {
 			$current_scan = $history_data[ $scan_index ];
 		}
 
+		$db = new Alma_DB();
+		$db_results = $db->get_all_results();
+		$persisted_results = array();
+		foreach ( $db_results as $row ) {
+			$persisted_results[ $row['check_id'] ] = array(
+				'name'           => $row['check_name'],
+				'status'         => $row['status'],
+				'description'    => $row['result'],
+				'recommendation' => $row['recommendation'],
+				'last_scan_at'   => $row['last_scan_at']
+			);
+		}
+
 		wp_localize_script( 'alma-admin-js', 'alma_ajax', array(
 			'ajax_url'     => admin_url( 'admin-ajax.php' ),
 			'nonce'        => wp_create_nonce( 'alma_security_nonce' ),
 			'latest_scan'  => $current_scan,
 			'history'      => $history_data,
 			'scan_index'   => $scan_index,
+			'db_results'   => $persisted_results,
 		) );
 	}
 
@@ -124,12 +138,26 @@ class Alma_Admin {
 		}
 
 		$type = isset( $_POST['type'] ) ? sanitize_text_field( $_POST['type'] ) : 'all';
-		$scanner = new Alma_Scanner();
-		$results = $scanner->run_scan( $type );
+		$check_id = isset( $_POST['check_id'] ) ? sanitize_text_field( $_POST['check_id'] ) : '';
 
-		// Save to history
-		$history = new Alma_History();
-		$history->save_scan( $results );
+		$scanner = new Alma_Scanner();
+		$results = $scanner->run_scan( $type, $check_id );
+
+		// Database Persistence
+		$db = new Alma_DB();
+		if ( $type === 'all' ) {
+			foreach ( $results['vulnerabilities'] as $id => $data ) {
+				$db->save_check_result( $id, $data );
+			}
+		} elseif ( ! empty( $check_id ) && isset( $results['vulnerabilities'][ $check_id ] ) ) {
+			$db->save_check_result( $check_id, $results['vulnerabilities'][ $check_id ] );
+		}
+
+		// Save to history (only full scans)
+		if ( $type === 'all' ) {
+			$history = new Alma_History();
+			$history->save_scan( $results, 'all' );
+		}
 
 		// API Integration
 		if ( get_option( 'alma_security_enable_api' ) ) {
