@@ -88,6 +88,7 @@ class Alma_Admin {
 
 		$db = new Alma_DB();
 		$db_results = $db->get_all_results();
+		$score_history = $db->get_score_history();
 		$persisted_results = array();
 		foreach ( $db_results as $row ) {
 			$persisted_results[ $row['check_id'] ] = array(
@@ -111,6 +112,7 @@ class Alma_Admin {
 			'scan_index'   => $scan_index,
 			'db_results'   => $persisted_results,
 			'user_role'    => $current_role,
+			'score_history'=> $score_history,
 		) );
 	}
 
@@ -174,6 +176,8 @@ class Alma_Admin {
 		if ( $type === 'all' ) {
 			$history = new Alma_History();
 			$history->save_scan( $results, 'all' );
+			$db->save_score_history( $results['score'] );
+			$results['score_history'] = $db->get_score_history();
 		}
 
 		// API Integration

@@ -21,6 +21,9 @@ class Mock_WPDB {
     }
     public function get_results($query, $output) {
         echo "DB GET_RESULTS: $query\n";
+        if (strpos($query, 'alma_score_history') !== false) {
+            return array(array('score' => 85, 'scanned_at' => '2026-03-17 20:10:00'));
+        }
         return array();
     }
     public function get_row($query, $output) {
@@ -66,5 +69,11 @@ $db->get_all_results();
 
 // Test Get One
 $db->get_result('test_id');
+
+// Test Score History
+$db->save_score_history(85);
+$history = $db->get_score_history();
+echo "Score History Count: " . count($history) . "\n";
+echo "First Score: " . $history[0]['score'] . "\n";
 
 echo "DB Test complete.\n";

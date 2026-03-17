@@ -1,4 +1,9 @@
 <div class="wrap alma-security-wrap pr-4 font-sans text-gray-900 bg-gray-50 min-h-screen">
+    <!-- Alerts System -->
+    <div id="alma-alerts-container" class="pt-10 space-y-4">
+        <!-- Dynamic Alerts will appear here -->
+    </div>
+
     <!-- Header Section -->
     <div class="flex justify-between items-center py-10">
         <div>
@@ -32,24 +37,35 @@
     </div>
 
     <!-- Overview Row -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-12">
         <!-- Main Score -->
         <div class="bg-white p-10 rounded-[3rem] shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
             <h3 class="text-xs font-black text-gray-400 uppercase tracking-[0.3em] mb-8">Security Score</h3>
-            <div class="relative w-48 h-48 mb-6">
+            <div class="relative w-40 h-40 mb-6">
                 <canvas id="scoreChart"></canvas>
                 <div class="absolute inset-0 flex flex-col items-center justify-center">
-                    <span id="scoreText" class="text-5xl font-black tracking-tighter">--</span>
+                    <span id="scoreText" class="text-4xl font-black tracking-tighter">--</span>
                     <span id="risk-level" class="text-[10px] font-black px-3 py-1 rounded-full bg-gray-100 text-gray-500 mt-2 uppercase tracking-widest">--</span>
                 </div>
             </div>
             <p id="last-scan-info" class="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Sin datos de escaneo</p>
         </div>
 
-        <!-- Distribution -->
+        <!-- Evolution Chart -->
         <div class="lg:col-span-2 bg-white p-10 rounded-[3rem] shadow-sm border border-gray-100">
-            <div class="flex justify-between items-center mb-10">
-                <h3 class="text-xl font-black text-gray-900 uppercase tracking-tight">Distribución de Hallazgos</h3>
+            <div class="flex justify-between items-center mb-8">
+                <h3 class="text-xl font-black text-gray-900 uppercase tracking-tight">Evolución de Seguridad</h3>
+                <span class="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-full uppercase">Últimos 50 escaneos</span>
+            </div>
+            <div class="h-40">
+                <canvas id="evolutionChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Distribution -->
+        <div class="bg-white p-10 rounded-[3rem] shadow-sm border border-gray-100">
+            <div class="flex flex-col h-full">
+                <h3 class="text-sm font-black text-gray-900 uppercase tracking-tight mb-6">Hallazgos</h3>
                 <div class="flex space-x-4 text-gray-400 font-bold text-[10px] uppercase">
                     <div class="flex items-center"><span class="w-2.5 h-2.5 bg-green-500 rounded-full mr-1.5"></span> Seguro</div>
                     <div class="flex items-center"><span class="w-2.5 h-2.5 bg-orange-500 rounded-full mr-1.5"></span> Advertencia</div>
@@ -59,6 +75,17 @@
             <div class="h-48">
                 <canvas id="distributionChart"></canvas>
             </div>
+        </div>
+    </div>
+
+    <!-- Global Filter -->
+    <div class="mb-10 flex flex-wrap gap-4 items-center">
+        <span class="text-xs font-black text-gray-400 uppercase tracking-widest">Filtrar por estado:</span>
+        <div class="flex bg-white p-1.5 rounded-2xl border border-gray-100 shadow-sm">
+            <button data-filter="all" class="status-filter-btn px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all bg-gray-900 text-white">Todos</button>
+            <button data-filter="secure" class="status-filter-btn px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all text-gray-400 hover:text-gray-900">Seguro</button>
+            <button data-filter="warning" class="status-filter-btn px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all text-gray-400 hover:text-gray-900">Advertencia</button>
+            <button data-filter="critical" class="status-filter-btn px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all text-gray-400 hover:text-gray-900">Crítico</button>
         </div>
     </div>
 
@@ -215,13 +242,17 @@
                                     <td class="px-8 py-6 text-center">
                                         <div class="flex flex-col items-center gap-1">
                                             <span class="text-[10px] font-bold text-gray-400 uppercase check-last-scan">Nunca</span>
-                                            <button data-check="<?php echo $check_id; ?>" class="view-check-history-btn text-[9px] font-black text-blue-500 hover:text-blue-700 uppercase tracking-tighter">Historial</button>
                                         </div>
                                     </td>
                                     <td class="px-8 py-6 text-right">
-                                        <button data-check="<?php echo $check_id; ?>" data-section="<?php echo $key; ?>" class="run-individual-scan-btn bg-gray-900 hover:bg-blue-600 text-white font-black py-2.5 px-6 rounded-xl transition-all shadow-lg shadow-gray-200 hover:shadow-blue-200 text-[10px] uppercase tracking-widest whitespace-nowrap active:scale-95">
-                                            Scan
-                                        </button>
+                                        <div class="flex justify-end gap-2">
+                                            <button data-check="<?php echo $check_id; ?>" class="view-check-history-btn bg-white border-2 border-gray-100 hover:bg-gray-50 text-gray-900 font-black py-2.5 px-4 rounded-xl transition-all text-[10px] uppercase tracking-widest whitespace-nowrap">
+                                                Detalles
+                                            </button>
+                                            <button data-check="<?php echo $check_id; ?>" data-section="<?php echo $key; ?>" class="run-individual-scan-btn bg-gray-900 hover:bg-blue-600 text-white font-black py-2.5 px-6 rounded-xl transition-all shadow-lg shadow-gray-200 hover:shadow-blue-200 text-[10px] uppercase tracking-widest whitespace-nowrap active:scale-95">
+                                                Scan
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <?php endforeach; ?>
@@ -243,13 +274,19 @@
                 <div class="bg-white px-8 pt-8 pb-4 sm:p-10 sm:pb-6">
                     <div class="sm:flex sm:items-start">
                         <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
-                            <div class="flex justify-between items-center mb-8">
-                                <h3 class="text-3xl font-black text-gray-900 tracking-tighter" id="modal-title">Historial de Verificación</h3>
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-3xl font-black text-gray-900 tracking-tighter" id="modal-title">Detalles de Verificación</h3>
                                 <button id="close-modal-btn" class="text-gray-400 hover:text-gray-600">
                                     <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                                 </button>
                             </div>
-                            <div id="modal-content" class="space-y-4 max-h-[50vh] overflow-y-auto pr-2">
+                            <div id="modal-info" class="mb-8 p-6 bg-blue-50 rounded-3xl border border-blue-100">
+                                <h4 class="text-xs font-black text-blue-600 uppercase tracking-widest mb-2">Descripción y Recomendación</h4>
+                                <p id="modal-description" class="text-sm text-blue-900 font-medium leading-relaxed"></p>
+                                <p id="modal-recommendation" class="text-xs text-blue-700 mt-4 font-bold"></p>
+                            </div>
+                            <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Historial de escaneos</h4>
+                            <div id="modal-content" class="space-y-4 max-h-[40vh] overflow-y-auto pr-2">
                                 <!-- Loaded dynamically -->
                                 <div class="text-center py-10 text-gray-400 italic">Cargando historial...</div>
                             </div>

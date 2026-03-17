@@ -49,11 +49,21 @@ class Alma_DB {
 			UNIQUE KEY username (username)
 		) $charset_collate;";
 
+		// Score Evolution Table
+		$score_history_table = $wpdb->prefix . 'alma_score_history';
+		$sql_score_history = "CREATE TABLE $score_history_table (
+			id mediumint(9) NOT NULL AUTO_INCREMENT,
+			score int NOT NULL,
+			scanned_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+			PRIMARY KEY  (id)
+		) $charset_collate;";
+
 		if ( file_exists( ABSPATH . 'wp-admin/includes/upgrade.php' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 			dbDelta( $sql_scans );
 			dbDelta( $sql_history );
 			dbDelta( $sql_users );
+			dbDelta( $sql_score_history );
 		}
 	}
 
@@ -106,5 +116,24 @@ class Alma_DB {
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'alma_scans';
 		return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table_name WHERE check_id = %s", $check_id ), ARRAY_A );
+	}
+
+	public function save_score_history( $score ) {
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'alma_score_history';
+		$wpdb->insert(
+			$table_name,
+			array(
+				'score'      => $score,
+				'scanned_at' => current_time( 'mysql' ),
+			),
+			array( '%d', '%s' )
+		);
+	}
+
+	public function get_score_history() {
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'alma_score_history';
+		return $wpdb->get_results( "SELECT score, scanned_at FROM $table_name ORDER BY scanned_at ASC LIMIT 50", ARRAY_A );
 	}
 }

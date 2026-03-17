@@ -3,6 +3,8 @@
 
     let scoreChart = null;
     let distributionChart = null;
+    let evolutionChart = null;
+    let currentFilter = 'all';
 
     $(document).ready(function() {
         applyRoleRestrictions(alma_ajax.user_role);
@@ -21,6 +23,9 @@
         } else {
             initChart(0);
         }
+
+        initEvolutionChart(alma_ajax.score_history || []);
+        updateAlerts();
 
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('auto_scan') === '1') {
@@ -60,7 +65,12 @@
 
         $(document).on('click', '.view-check-history-btn', function() {
             const checkId = $(this).data('check');
-            showCheckHistory(checkId);
+            showCheckDetails(checkId);
+        });
+
+        $('.status-filter-btn').on('click', function() {
+            const filter = $(this).data('filter');
+            applyFilter(filter);
         });
 
         $('#close-modal-btn, #close-modal-footer-btn, #modal-overlay').on('click', function() {
@@ -150,6 +160,57 @@
                     y: {
                         grid: { display: false },
                         ticks: { font: { weight: 'bold' } }
+                    }
+                }
+            }
+        });
+    }
+
+    function initEvolutionChart(history) {
+        const ctx = document.getElementById('evolutionChart');
+        if (!ctx) return;
+
+        if (evolutionChart) {
+            evolutionChart.destroy();
+        }
+
+        const labels = history.map(item => new Date(item.scanned_at).toLocaleDateString());
+        const scores = history.map(item => item.score);
+
+        evolutionChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Score %',
+                    data: scores,
+                    borderColor: '#3B82F6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 4,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#3B82F6',
+                    pointBorderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { size: 10, weight: 'bold' }, color: '#9CA3AF' }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        grid: { color: '#F3F4F6' },
+                        ticks: { font: { size: 10, weight: 'bold' }, color: '#9CA3AF' }
                     }
                 }
             }
@@ -257,11 +318,19 @@
         if (data.last_scan_at) {
             row.find('.check-last-scan').text(data.last_scan_at);
         }
+
+        row.attr('data-status', data.status);
+        applyFilter(currentFilter);
+        updateAlerts();
     }
 
-    function showCheckHistory(checkId) {
+    function showCheckDetails(checkId) {
         const modal = $('#history-modal');
         const content = $('#modal-content');
+        const row = $(`#check-row-${checkId}`);
+
+        $('#modal-description').text(row.find('.check-description').text());
+        $('#modal-recommendation').text(row.find('.check-recommendation').text() || 'No hay recomendaciones adicionales.');
 
         modal.removeClass('hidden');
         content.html('<div class="flex justify-center py-10"><div class="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-900"></div></div>');
@@ -294,6 +363,68 @@
                 content.html('<div class="text-red-500 font-bold p-4">Error: ' + response.data + '</div>');
             }
         });
+    }
+
+    function applyFilter(filter) {
+        currentFilter = filter;
+        $('.status-filter-btn').removeClass('bg-gray-900 text-white').addClass('text-gray-400 hover:text-gray-900');
+        $(`.status-filter-btn[data-filter="${filter}"]`).removeClass('text-gray-400 hover:text-gray-900').addClass('bg-gray-900 text-white');
+
+        $('.group\\/row').each(function() {
+            const status = $(this).attr('data-status');
+            if (filter === 'all' || status === filter) {
+                $(this).removeClass('hidden');
+            } else {
+                $(this).addClass('hidden');
+            }
+        });
+
+        // Hide empty sections (optional, but cleaner)
+        $('.section-content-wrapper').each(function() {
+            const visibleRows = $(this).find('.group\\/row:not(.hidden)').length;
+            const section = $(this).closest('.group');
+            if (visibleRows === 0 && filter !== 'all') {
+                section.addClass('opacity-30 grayscale');
+            } else {
+                section.removeClass('opacity-30 grayscale');
+            }
+        });
+    }
+
+    function updateAlerts() {
+        const container = $('#alma-alerts-container');
+        container.empty();
+
+        const findings = [];
+        $('.group\\/row').each(function() {
+            const status = $(this).attr('data-status');
+            if (status === 'critical' || status === 'warning') {
+                findings.push({
+                    name: $(this).find('.check-name').text(),
+                    status: status,
+                    desc: $(this).find('.check-description').text()
+                });
+            }
+        });
+
+        if (findings.length > 0) {
+            findings.slice(0, 3).forEach(alert => {
+                const colorClass = alert.status === 'critical' ? 'bg-red-50 border-red-200 text-red-800' : 'bg-yellow-50 border-yellow-200 text-yellow-800';
+                const icon = alert.status === 'critical'
+                    ? '<svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>'
+                    : '<svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
+
+                container.append(`
+                    <div class="flex items-center p-5 rounded-2xl border-2 ${colorClass} animate-bounce-slow">
+                        ${icon}
+                        <div class="flex-1">
+                            <span class="text-[10px] font-black uppercase tracking-widest block mb-1">Alerta de Seguridad</span>
+                            <p class="text-sm font-bold tracking-tight">${alert.name}: <span class="font-medium opacity-80">${alert.desc}</span></p>
+                        </div>
+                    </div>
+                `);
+            });
+        }
     }
 
     function runScan(type = 'all') {
@@ -336,6 +467,9 @@
 
     function updateUI(data, type = 'all') {
         initChart(data.score);
+        if (data.score_history) {
+            initEvolutionChart(data.score_history);
+        }
 
         const riskEl = $('#risk-level');
         riskEl.text(data.level);
