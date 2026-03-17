@@ -89,9 +89,9 @@
             $('#delete-data-btn').removeClass('hidden');
         }
 
-        // Check if we are in frontend (some elements might be restricted by WP theme)
+        // Check if we are in frontend
         if ($('#alma-frontend-dashboard').length > 0) {
-            $('.alma-security-wrap').removeClass('pr-4'); // Remove admin-specific spacing
+            $('.alma-security-wrap').removeClass('pr-4');
         }
     }
 
@@ -272,7 +272,7 @@
             }
         });
 
-        $('#scoreText').text(score + '%').css('color', '#111827');
+        $('#scoreText').text(score + '%').css('color', color);
     }
 
     function runIndividualScan(checkId, type, btn) {
@@ -404,7 +404,7 @@
             }
         });
 
-        // Hide empty sections (optional, but cleaner)
+        // Hide empty sections
         $('.section-content-wrapper').each(function() {
             const visibleRows = $(this).find('.group\\/row:not(.hidden)').length;
             const section = $(this).closest('.group');
@@ -420,31 +420,32 @@
         const container = $('#alma-alerts-container');
         container.empty();
 
-        let warnings = 0;
-        let errors = 0;
         const findings = [];
-
         $('.group\\/row').each(function() {
             const status = $(this).attr('data-status');
-            if (status === 'critical') {
-                errors++;
-                findings.push({ name: $(this).find('.check-name').text(), status: status });
-            } else if (status === 'warning') {
-                warnings++;
-                findings.push({ name: $(this).find('.check-name').text(), status: status });
+            if (status === 'critical' || status === 'warning') {
+                findings.push({
+                    name: $(this).find('.check-name').text(),
+                    status: status,
+                    desc: $(this).find('.check-description').text()
+                });
             }
         });
 
-        $('#warning-count').text(warnings);
-        $('#error-count').text(errors);
-
         if (findings.length > 0) {
             findings.slice(0, 3).forEach(alert => {
-                const colorClass = alert.status === 'critical' ? 'bg-red-50 border-red-200 text-red-600' : 'bg-yellow-50 border-yellow-200 text-yellow-600';
+                const colorClass = alert.status === 'critical' ? 'bg-red-50 border-red-200 text-red-800' : 'bg-yellow-50 border-yellow-200 text-yellow-800';
+                const icon = alert.status === 'critical'
+                    ? '<svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>'
+                    : '<svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
+
                 container.append(`
-                    <div class="flex items-center p-3 rounded-2xl border ${colorClass} text-[10px] font-bold uppercase tracking-tight">
-                        <span class="w-1.5 h-1.5 rounded-full bg-current mr-2 animate-pulse"></span>
-                        <span class="truncate">${alert.name}</span>
+                    <div class="flex items-center p-5 rounded-2xl border-2 ${colorClass} animate-bounce-slow">
+                        ${icon}
+                        <div class="flex-1">
+                            <span class="text-[10px] font-black uppercase tracking-widest block mb-1">Alerta de Seguridad</span>
+                            <p class="text-sm font-bold tracking-tight">${alert.name}: <span class="font-medium opacity-80">${alert.desc}</span></p>
+                        </div>
                     </div>
                 `);
             });
@@ -507,38 +508,11 @@
 
         initDistributionChart(data.counts || {});
 
-        // Update all individual check UIs if they were returned
         if (data.vulnerabilities) {
             Object.keys(data.vulnerabilities).forEach(checkId => {
                 updateCheckUI(checkId, data.vulnerabilities[checkId]);
             });
         }
-    }
-
-    function buildTableRow(name, status, desc, rec) {
-        const statusColor = status === 'secure' ? 'text-green-600' : (status === 'warning' ? 'text-orange-600' : 'text-red-600');
-        const bgColor = status === 'secure' ? 'bg-green-100' : (status === 'warning' ? 'bg-orange-100' : 'bg-red-100');
-        const statusLabel = status === 'secure' ? 'Seguro' : (status === 'warning' ? 'Advertencia' : 'Crítico');
-        const icon = status === 'secure'
-            ? '<svg class="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>'
-            : '<svg class="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>';
-
-        return `
-            <tr class="hover:bg-gray-50/50 transition-colors">
-                <td class="px-10 py-6 text-gray-900 font-bold tracking-tight">${name}</td>
-                <td class="px-10 py-6 text-center">
-                    <span class="inline-flex items-center px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${bgColor} ${statusColor}">
-                        ${icon} ${statusLabel}
-                    </span>
-                </td>
-                <td class="px-10 py-6 text-gray-500 text-sm leading-relaxed max-w-xs">${desc}</td>
-                <td class="px-10 py-6">
-                    <div class="p-4 rounded-2xl bg-gray-50 border border-gray-100 text-xs font-bold text-gray-700 leading-snug">
-                        ${rec}
-                    </div>
-                </td>
-            </tr>
-        `;
     }
 
 })(jQuery);
