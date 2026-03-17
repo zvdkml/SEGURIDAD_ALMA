@@ -57,6 +57,15 @@
                 deleteScanData();
             }
         });
+
+        $(document).on('click', '.view-check-history-btn', function() {
+            const checkId = $(this).data('check');
+            showCheckHistory(checkId);
+        });
+
+        $('#close-modal-btn, #close-modal-footer-btn, #modal-overlay').on('click', function() {
+            $('#history-modal').addClass('hidden');
+        });
     });
 
     function applyRoleRestrictions(role) {
@@ -181,7 +190,7 @@
     }
 
     function runIndividualScan(checkId, type, btn) {
-        btn.prop('disabled', true).addClass('opacity-50 cursor-not-allowed').text('ESCANEANDO...');
+        btn.prop('disabled', true).addClass('opacity-50 cursor-not-allowed').html('<div class="flex items-center gap-2 justify-center"><div class="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div> SCAN</div>');
 
         $.ajax({
             url: alma_ajax.ajax_url,
@@ -203,7 +212,7 @@
                 alert('Ocurrió un error al procesar el escaneo individual.');
             },
             complete: function() {
-                btn.prop('disabled', false).removeClass('opacity-50 cursor-not-allowed').text('RE-ESCANEAR');
+                btn.prop('disabled', false).removeClass('opacity-50 cursor-not-allowed').text('RE-SCAN');
             }
         });
     }
@@ -231,6 +240,15 @@
         }
         badge.text(label);
 
+        const riskBadge = row.find('.check-risk-badge');
+        riskBadge.removeClass('bg-gray-50 text-gray-400 bg-red-100 text-red-800 bg-orange-100 text-orange-800 bg-blue-100 text-blue-800 border-red-200 border-orange-200 border-blue-200');
+
+        const risk = data.risk_level || data.risk || 'Bajo';
+        riskBadge.text(risk);
+        if (risk === 'Crítico' || risk === 'Alto') riskBadge.addClass('bg-red-100 text-red-800 border-red-200');
+        else if (risk === 'Medio') riskBadge.addClass('bg-orange-100 text-orange-800 border-orange-200');
+        else riskBadge.addClass('bg-blue-100 text-blue-800 border-blue-200');
+
         if (data.recommendation) {
             row.find('.check-recommendation').text(data.recommendation);
             row.find('.check-recommendation-box').removeClass('hidden');
@@ -239,6 +257,43 @@
         if (data.last_scan_at) {
             row.find('.check-last-scan').text(data.last_scan_at);
         }
+    }
+
+    function showCheckHistory(checkId) {
+        const modal = $('#history-modal');
+        const content = $('#modal-content');
+
+        modal.removeClass('hidden');
+        content.html('<div class="flex justify-center py-10"><div class="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-900"></div></div>');
+
+        $.get(alma_ajax.ajax_url, {
+            action: 'alma_get_check_history',
+            nonce: alma_ajax.nonce,
+            check_id: checkId
+        }, function(response) {
+            if (response.success) {
+                let html = '';
+                if (response.data.length === 0) {
+                    html = '<div class="text-center py-10 text-gray-400 italic">No hay historial para esta verificación.</div>';
+                } else {
+                    response.data.forEach(item => {
+                        const statusColor = item.status === 'secure' ? 'text-green-600' : (item.status === 'warning' ? 'text-yellow-600' : 'text-red-600');
+                        html += `
+                            <div class="bg-gray-50 p-6 rounded-2xl border border-gray-100">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-xs font-black uppercase tracking-widest ${statusColor}">${item.status.toUpperCase()}</span>
+                                    <span class="text-[10px] font-bold text-gray-400">${item.scanned_at}</span>
+                                </div>
+                                <p class="text-sm text-gray-700 font-medium">${item.result}</p>
+                            </div>
+                        `;
+                    });
+                }
+                content.html(html);
+            } else {
+                content.html('<div class="text-red-500 font-bold p-4">Error: ' + response.data + '</div>');
+            }
+        });
     }
 
     function runScan(type = 'all') {

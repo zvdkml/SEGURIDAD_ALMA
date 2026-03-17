@@ -13,12 +13,14 @@ class Alma_Admin {
 		add_action( 'wp_ajax_alma_run_scan', array( $this, 'ajax_run_scan' ) );
 		add_action( 'wp_ajax_alma_manage_users', array( $this, 'ajax_manage_users' ) );
 		add_action( 'wp_ajax_alma_delete_scan_data', array( $this, 'ajax_delete_scan_data' ) );
+		add_action( 'wp_ajax_alma_get_check_history', array( $this, 'ajax_get_check_history' ) );
 	}
 
 	public function register_settings() {
 		register_setting( 'alma_security_settings', 'alma_security_api_endpoint' );
 		register_setting( 'alma_security_settings', 'alma_security_api_key' );
 		register_setting( 'alma_security_settings', 'alma_security_enable_api' );
+		register_setting( 'alma_security_settings', 'alma_security_monitor_endpoint' );
 	}
 
 	public function register_menu() {
@@ -93,6 +95,7 @@ class Alma_Admin {
 				'status'         => $row['status'],
 				'description'    => $row['result'],
 				'recommendation' => $row['recommendation'],
+				'risk_level'     => $row['risk_level'],
 				'last_scan_at'   => $row['last_scan_at']
 			);
 		}
@@ -143,6 +146,7 @@ class Alma_Admin {
 		$type = isset( $_POST['type'] ) ? sanitize_text_field( $_POST['type'] ) : 'all';
 		$check_id = isset( $_POST['check_id'] ) ? sanitize_text_field( $_POST['check_id'] ) : '';
 
+		// Security Checks
 		if ( $type === 'all' && ! $auth->can( 'full_scan' ) ) {
 			wp_send_json_error( 'No tienes permisos para realizar un escaneo completo.' );
 		}
@@ -150,19 +154,20 @@ class Alma_Admin {
 		if ( ! empty( $check_id ) && ! $auth->can( 'individual_scan' ) ) {
 			wp_send_json_error( 'No tienes permisos para realizar escaneos individuales.' );
 		}
-		$check_id = isset( $_POST['check_id'] ) ? sanitize_text_field( $_POST['check_id'] ) : '';
+
+		if ( $type !== 'all' && empty( $check_id ) && ! $auth->can( 'individual_scan' ) ) {
+			wp_send_json_error( 'No tienes permisos para realizar escaneos de módulos.' );
+		}
 
 		$scanner = new Alma_Scanner();
 		$results = $scanner->run_scan( $type, $check_id );
 
 		// Database Persistence
 		$db = new Alma_DB();
-		if ( $type === 'all' ) {
+		if ( isset( $results['vulnerabilities'] ) ) {
 			foreach ( $results['vulnerabilities'] as $id => $data ) {
 				$db->save_check_result( $id, $data );
 			}
-		} elseif ( ! empty( $check_id ) && isset( $results['vulnerabilities'][ $check_id ] ) ) {
-			$db->save_check_result( $check_id, $results['vulnerabilities'][ $check_id ] );
 		}
 
 		// Save to history (only full scans)
@@ -189,9 +194,24 @@ class Alma_Admin {
 
 		global $wpdb;
 		$wpdb->query( "TRUNCATE TABLE {$wpdb->prefix}alma_scans" );
+		$wpdb->query( "TRUNCATE TABLE {$wpdb->prefix}alma_scan_history" );
 		update_option( 'alma_security_history', array() );
 
 		wp_send_json_success( 'Datos eliminados correctamente.' );
+	}
+
+	public function ajax_get_check_history() {
+		check_ajax_referer( 'alma_security_nonce', 'nonce' );
+
+		$check_id = isset( $_GET['check_id'] ) ? sanitize_text_field( $_GET['check_id'] ) : '';
+		if ( empty( $check_id ) ) {
+			wp_send_json_error( 'ID de verificación faltante.' );
+		}
+
+		$db = new Alma_DB();
+		$history = $db->get_check_history( $check_id );
+
+		wp_send_json_success( $history );
 	}
 
 	public function ajax_manage_users() {

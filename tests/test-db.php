@@ -15,6 +15,10 @@ class Mock_WPDB {
         echo "DB REPLACE: " . json_encode($data) . "\n";
         return 1;
     }
+    public function insert($table, $data, $format) {
+        echo "DB INSERT: " . json_encode($data) . "\n";
+        return 1;
+    }
     public function get_results($query, $output) {
         echo "DB GET_RESULTS: $query\n";
         return array();

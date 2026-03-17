@@ -183,7 +183,8 @@
                                 <tr class="bg-gray-50/80 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">
                                     <th class="px-8 py-5 w-1/4">Nombre de la verificación</th>
                                     <th class="px-8 py-5 w-1/6 text-center">Estado</th>
-                                    <th class="px-8 py-5 w-1/3">Resultado</th>
+                                    <th class="px-8 py-5 w-1/4">Resultado</th>
+                                    <th class="px-8 py-5 w-1/6 text-center">Riesgo</th>
                                     <th class="px-8 py-5 w-1/6 text-center">Último escaneo</th>
                                     <th class="px-8 py-5 w-1/6 text-right">Acción</th>
                                 </tr>
@@ -207,7 +208,15 @@
                                         </div>
                                     </td>
                                     <td class="px-8 py-6 text-center">
-                                        <span class="text-[10px] font-bold text-gray-300 uppercase check-last-scan">Nunca</span>
+                                        <span class="check-risk-badge inline-flex items-center px-3 py-0.5 rounded-lg text-[9px] font-bold uppercase bg-gray-50 text-gray-400 border border-gray-100">
+                                            --
+                                        </span>
+                                    </td>
+                                    <td class="px-8 py-6 text-center">
+                                        <div class="flex flex-col items-center gap-1">
+                                            <span class="text-[10px] font-bold text-gray-400 uppercase check-last-scan">Nunca</span>
+                                            <button data-check="<?php echo $check_id; ?>" class="view-check-history-btn text-[9px] font-black text-blue-500 hover:text-blue-700 uppercase tracking-tighter">Historial</button>
+                                        </div>
                                     </td>
                                     <td class="px-8 py-6 text-right">
                                         <button data-check="<?php echo $check_id; ?>" data-section="<?php echo $key; ?>" class="run-individual-scan-btn bg-gray-900 hover:bg-blue-600 text-white font-black py-2.5 px-6 rounded-xl transition-all shadow-lg shadow-gray-200 hover:shadow-blue-200 text-[10px] uppercase tracking-widest whitespace-nowrap active:scale-95">
@@ -223,5 +232,36 @@
             </div>
         </div>
         <?php endforeach; ?>
+    </div>
+
+    <!-- History Modal -->
+    <div id="history-modal" class="hidden fixed inset-0 z-[100000] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div id="modal-overlay" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-[2rem] text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+                <div class="bg-white px-8 pt-8 pb-4 sm:p-10 sm:pb-6">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
+                            <div class="flex justify-between items-center mb-8">
+                                <h3 class="text-3xl font-black text-gray-900 tracking-tighter" id="modal-title">Historial de Verificación</h3>
+                                <button id="close-modal-btn" class="text-gray-400 hover:text-gray-600">
+                                    <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                </button>
+                            </div>
+                            <div id="modal-content" class="space-y-4 max-h-[50vh] overflow-y-auto pr-2">
+                                <!-- Loaded dynamically -->
+                                <div class="text-center py-10 text-gray-400 italic">Cargando historial...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-10 py-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" id="close-modal-footer-btn" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-8 py-3 bg-gray-900 text-base font-bold text-white hover:bg-gray-800 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
+                        CERRAR
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
