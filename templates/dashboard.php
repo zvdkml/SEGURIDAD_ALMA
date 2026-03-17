@@ -63,16 +63,16 @@
         </div>
 
         <!-- Distribution -->
-        <div class="bg-white p-10 rounded-[3rem] shadow-sm border border-gray-100">
-            <div class="flex flex-col h-full">
-                <h3 class="text-sm font-black text-gray-900 uppercase tracking-tight mb-6">Hallazgos</h3>
-                <div class="flex space-x-4 text-gray-400 font-bold text-[10px] uppercase">
-                    <div class="flex items-center"><span class="w-2.5 h-2.5 bg-green-500 rounded-full mr-1.5"></span> Seguro</div>
-                    <div class="flex items-center"><span class="w-2.5 h-2.5 bg-orange-500 rounded-full mr-1.5"></span> Advertencia</div>
-                    <div class="flex items-center"><span class="w-2.5 h-2.5 bg-red-500 rounded-full mr-1.5"></span> Crítico</div>
+        <div class="bg-white p-10 rounded-[3rem] shadow-sm border border-gray-100 flex flex-col">
+            <div class="mb-6 flex justify-between items-start">
+                <h3 class="text-sm font-black text-gray-900 uppercase tracking-tight">Hallazgos</h3>
+                <div class="flex flex-col gap-1 text-gray-400 font-bold text-[9px] uppercase">
+                    <div class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-1.5"></span> Seguro</div>
+                    <div class="flex items-center"><span class="w-2 h-2 bg-orange-500 rounded-full mr-1.5"></span> Advertencia</div>
+                    <div class="flex items-center"><span class="w-2 h-2 bg-red-500 rounded-full mr-1.5"></span> Crítico</div>
                 </div>
             </div>
-            <div class="h-48">
+            <div class="relative flex-grow h-48 min-h-[12rem] w-full">
                 <canvas id="distributionChart"></canvas>
             </div>
         </div>

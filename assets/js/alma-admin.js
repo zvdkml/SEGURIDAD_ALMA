@@ -143,23 +143,43 @@
                 datasets: [{
                     data: [counts.bajo || 0, counts.medio || 0, counts.critico || 0],
                     backgroundColor: ['#10B981', '#F59E0B', '#EF4444'],
-                    borderRadius: 10,
-                    barThickness: 30
+                    borderRadius: 8,
+                    barPercentage: 0.6,
+                    categoryPercentage: 0.8
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 indexAxis: 'y',
+                layout: {
+                    padding: { top: 0, bottom: 0, left: 0, right: 10 }
+                },
                 plugins: {
                     legend: { display: false },
-                    tooltip: { enabled: true }
+                    tooltip: {
+                        backgroundColor: '#111827',
+                        titleFont: { size: 12, weight: 'bold' },
+                        bodyFont: { size: 12 },
+                        padding: 10,
+                        cornerRadius: 8,
+                        displayColors: false
+                    }
                 },
                 scales: {
-                    x: { display: false, beginAtZero: true },
+                    x: {
+                        display: false,
+                        beginAtZero: true,
+                        grid: { display: false }
+                    },
                     y: {
                         grid: { display: false },
-                        ticks: { font: { weight: 'bold' } }
+                        border: { display: false },
+                        ticks: {
+                            font: { size: 10, weight: '900' },
+                            color: '#9CA3AF',
+                            padding: 10
+                        }
                     }
                 }
             }
