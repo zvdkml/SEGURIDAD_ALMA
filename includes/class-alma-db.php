@@ -8,10 +8,11 @@ class Alma_DB {
 
 	public static function create_tables() {
 		global $wpdb;
-		$table_name = $wpdb->prefix . 'alma_scans';
 		$charset_collate = $wpdb->get_charset_collate();
 
-		$sql = "CREATE TABLE $table_name (
+		// Scans Table
+		$scans_table = $wpdb->prefix . 'alma_scans';
+		$sql_scans = "CREATE TABLE $scans_table (
 			id mediumint(9) NOT NULL AUTO_INCREMENT,
 			check_id varchar(100) NOT NULL,
 			check_name varchar(255) NOT NULL,
@@ -23,9 +24,22 @@ class Alma_DB {
 			UNIQUE KEY check_id (check_id)
 		) $charset_collate;";
 
+		// Users Table
+		$users_table = $wpdb->prefix . 'alma_users';
+		$sql_users = "CREATE TABLE $users_table (
+			id mediumint(9) NOT NULL AUTO_INCREMENT,
+			username varchar(100) NOT NULL,
+			password varchar(255) NOT NULL,
+			role varchar(50) NOT NULL,
+			created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+			PRIMARY KEY  (id),
+			UNIQUE KEY username (username)
+		) $charset_collate;";
+
 		if ( file_exists( ABSPATH . 'wp-admin/includes/upgrade.php' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-			dbDelta( $sql );
+			dbDelta( $sql_scans );
+			dbDelta( $sql_users );
 		}
 	}
 

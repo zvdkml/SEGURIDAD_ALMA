@@ -5,12 +5,20 @@
             <h1 class="text-5xl font-black text-gray-900 tracking-tight leading-none">Security <span class="text-blue-600 font-extrabold italic">Dashboard</span></h1>
             <p class="text-gray-500 mt-3 text-lg font-medium">Panel profesional de monitorización y auditoría de seguridad.</p>
         </div>
-        <button id="run-scan-btn" class="group flex items-center bg-gray-900 hover:bg-blue-600 text-white font-black py-4 px-10 rounded-2xl shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
-            <svg class="h-6 w-6 mr-3 group-hover:rotate-180 transition-transform duration-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            ESCANEAR TODO EL SITIO
-        </button>
+        <div class="flex items-center gap-4">
+            <button id="delete-data-btn" class="hidden group flex items-center bg-white border-2 border-red-100 hover:bg-red-50 text-red-600 font-black py-4 px-8 rounded-2xl transition-all duration-300 transform hover:-translate-y-1">
+                <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                BORRAR DATOS
+            </button>
+            <button id="run-scan-btn" class="group flex items-center bg-gray-900 hover:bg-blue-600 text-white font-black py-4 px-10 rounded-2xl shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+                <svg class="h-6 w-6 mr-3 group-hover:rotate-180 transition-transform duration-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                ESCANEAR TODO EL SITIO
+            </button>
+        </div>
     </div>
 
     <!-- Loader -->

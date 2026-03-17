@@ -11,6 +11,8 @@ class Alma_Admin {
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 		add_action( 'wp_ajax_alma_run_scan', array( $this, 'ajax_run_scan' ) );
+		add_action( 'wp_ajax_alma_manage_users', array( $this, 'ajax_manage_users' ) );
+		add_action( 'wp_ajax_alma_delete_scan_data', array( $this, 'ajax_delete_scan_data' ) );
 	}
 
 	public function register_settings() {
@@ -95,6 +97,9 @@ class Alma_Admin {
 			);
 		}
 
+		$auth = new Alma_Auth();
+		$current_role = $auth->get_current_user_role();
+
 		wp_localize_script( 'alma-admin-js', 'alma_ajax', array(
 			'ajax_url'     => admin_url( 'admin-ajax.php' ),
 			'nonce'        => wp_create_nonce( 'alma_security_nonce' ),
@@ -102,6 +107,7 @@ class Alma_Admin {
 			'history'      => $history_data,
 			'scan_index'   => $scan_index,
 			'db_results'   => $persisted_results,
+			'user_role'    => $current_role,
 		) );
 	}
 
@@ -133,11 +139,17 @@ class Alma_Admin {
 	public function ajax_run_scan() {
 		check_ajax_referer( 'alma_security_nonce', 'nonce' );
 
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( 'Acceso denegado' );
+		$auth = new Alma_Auth();
+		$type = isset( $_POST['type'] ) ? sanitize_text_field( $_POST['type'] ) : 'all';
+		$check_id = isset( $_POST['check_id'] ) ? sanitize_text_field( $_POST['check_id'] ) : '';
+
+		if ( $type === 'all' && ! $auth->can( 'full_scan' ) ) {
+			wp_send_json_error( 'No tienes permisos para realizar un escaneo completo.' );
 		}
 
-		$type = isset( $_POST['type'] ) ? sanitize_text_field( $_POST['type'] ) : 'all';
+		if ( ! empty( $check_id ) && ! $auth->can( 'individual_scan' ) ) {
+			wp_send_json_error( 'No tienes permisos para realizar escaneos individuales.' );
+		}
 		$check_id = isset( $_POST['check_id'] ) ? sanitize_text_field( $_POST['check_id'] ) : '';
 
 		$scanner = new Alma_Scanner();
@@ -166,6 +178,44 @@ class Alma_Admin {
 		}
 
 		wp_send_json_success( $results );
+	}
+
+	public function ajax_delete_scan_data() {
+		check_ajax_referer( 'alma_security_nonce', 'nonce' );
+		$auth = new Alma_Auth();
+		if ( ! $auth->can( 'delete_data' ) ) {
+			wp_send_json_error( 'Acceso denegado.' );
+		}
+
+		global $wpdb;
+		$wpdb->query( "TRUNCATE TABLE {$wpdb->prefix}alma_scans" );
+		update_option( 'alma_security_history', array() );
+
+		wp_send_json_success( 'Datos eliminados correctamente.' );
+	}
+
+	public function ajax_manage_users() {
+		check_ajax_referer( 'alma_security_nonce', 'nonce' );
+		$auth = new Alma_Auth();
+		if ( ! $auth->can( 'manage_users' ) ) {
+			wp_send_json_error( 'Acceso denegado.' );
+		}
+
+		$operation = isset( $_POST['operation'] ) ? sanitize_text_field( $_POST['operation'] ) : '';
+
+		if ( $operation === 'create' ) {
+			$user = sanitize_text_field( $_POST['username'] );
+			$pass = $_POST['password'];
+			$role = sanitize_text_field( $_POST['role'] );
+			$auth->create_user( $user, $pass, $role );
+			wp_send_json_success( 'Usuario creado.' );
+		} elseif ( $operation === 'delete' ) {
+			$id = intval( $_POST['user_id'] );
+			$auth->delete_user( $id );
+			wp_send_json_success( 'Usuario eliminado.' );
+		}
+
+		wp_send_json_error( 'Operación inválida.' );
 	}
 }
 

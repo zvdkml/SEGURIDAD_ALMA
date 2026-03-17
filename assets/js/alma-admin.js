@@ -5,6 +5,8 @@
     let distributionChart = null;
 
     $(document).ready(function() {
+        applyRoleRestrictions(alma_ajax.user_role);
+
         // Load persisted results if available
         if (alma_ajax.db_results && Object.keys(alma_ajax.db_results).length > 0) {
             Object.keys(alma_ajax.db_results).forEach(checkId => {
@@ -49,7 +51,44 @@
             const section = $(this).data('section');
             runIndividualScan(checkId, section, $(this));
         });
+
+        $('#delete-data-btn').on('click', function() {
+            if (confirm('¿Estás seguro de que deseas eliminar todos los datos de escaneo?')) {
+                deleteScanData();
+            }
+        });
     });
+
+    function applyRoleRestrictions(role) {
+        if (role === 'viewer') {
+            $('#run-scan-btn, .run-specific-scan-btn, .run-individual-scan-btn').remove();
+        } else if (role === 'user') {
+            $('#run-scan-btn, .run-specific-scan-btn').addClass('opacity-50 pointer-events-none').attr('title', 'No tienes permisos para escaneos globales.');
+        }
+
+        if (role === 'admin') {
+            $('#delete-data-btn').removeClass('hidden');
+        }
+    }
+
+    function deleteScanData() {
+        const btn = $('#delete-data-btn');
+        btn.prop('disabled', true).addClass('opacity-50');
+
+        $.post(alma_ajax.ajax_url, {
+            action: 'alma_delete_scan_data',
+            nonce: alma_ajax.nonce
+        }, function(response) {
+            if (response.success) {
+                alert(response.data);
+                location.reload();
+            } else {
+                alert('Error: ' + response.data);
+            }
+        }).always(function() {
+            btn.prop('disabled', false).removeClass('opacity-50');
+        });
+    }
 
     function toggleSection(container, btn, forceOpen = false) {
         if (forceOpen) {

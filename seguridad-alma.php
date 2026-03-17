@@ -34,6 +34,7 @@ class Seguridad_Alma {
 
 	private function includes() {
 		require_once ALMA_SECURITY_PATH . 'includes/class-alma-db.php';
+		require_once ALMA_SECURITY_PATH . 'includes/class-alma-auth.php';
 		require_once ALMA_SECURITY_PATH . 'includes/class-alma-scanner.php';
 		require_once ALMA_SECURITY_PATH . 'includes/class-alma-admin.php';
 		require_once ALMA_SECURITY_PATH . 'includes/class-alma-history.php';
