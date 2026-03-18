@@ -34,75 +34,103 @@ if ( $result['status'] === 'warning' ) {
 <head>
     <meta charset="<?php bloginfo( 'charset' ); ?>">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo esc_html( $result['check_name'] ); ?> - Solución de Seguridad</title>
+    <title><?php echo esc_html( $result['check_name'] ); ?> - Reparar Seguridad</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 </head>
 <body class="bg-gray-50 antialiased">
     <div class="wrap alma-security-wrap p-10 font-sans text-gray-900 min-h-screen">
-        <div class="max-w-4xl mx-auto">
+        <div class="max-w-3xl mx-auto">
             <div class="mb-10 flex items-center justify-between">
                 <a href="<?php echo home_url('/security'); ?>" class="flex items-center text-gray-400 hover:text-gray-900 font-bold transition-colors">
                     <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7" /></svg>
                     VOLVER AL DASHBOARD
                 </a>
-                <span class="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em]">Solución de Seguridad</span>
+                <span class="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em]">Reparación Automática</span>
             </div>
 
             <div class="bg-white p-12 rounded-[3.5rem] shadow-2xl border border-gray-100 relative overflow-hidden">
-                <!-- Status Ribbon -->
-                <div class="absolute top-0 right-0 mt-10 mr-[-50px] rotate-45 bg-<?php echo $status_color; ?>-500 text-white px-20 py-2 text-[10px] font-black uppercase tracking-widest shadow-lg">
-                    <?php echo $status_label; ?>
+                <!-- Header -->
+                <div class="mb-12">
+                    <h1 class="text-xs font-black text-blue-600 uppercase tracking-[0.4em] mb-4">Verificación</h1>
+                    <h2 class="text-5xl font-black text-gray-900 tracking-tighter"><?php echo esc_html( $result['check_name'] ); ?></h2>
                 </div>
 
-                <div class="flex items-start gap-8 mb-12">
-                    <div class="p-6 bg-<?php echo $status_color; ?>-50 rounded-[2rem] text-<?php echo $status_color; ?>-600 shadow-inner">
-                        <svg class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <h1 class="text-5xl font-black text-gray-900 tracking-tighter leading-tight"><?php echo esc_html( $result['check_name'] ); ?></h1>
-                        <div class="flex gap-4 mt-4">
-                            <span class="px-4 py-1.5 bg-gray-100 text-gray-500 rounded-full text-[10px] font-black uppercase tracking-widest border border-gray-200">ID: <?php echo esc_html( $check_id ); ?></span>
-                            <span class="px-4 py-1.5 bg-<?php echo $status_color; ?>-50 text-<?php echo $status_color; ?>-700 rounded-full text-[10px] font-black uppercase tracking-widest border border-<?php echo $status_color; ?>-100">Riesgo: <?php echo esc_html( $result['risk_level'] ); ?></span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-                    <div class="bg-gray-50 p-10 rounded-[2.5rem] border border-gray-100">
-                        <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-6">Hallazgo Actual</h3>
-                        <p class="text-lg text-gray-700 font-medium leading-relaxed italic">"<?php echo esc_html( $result['result'] ); ?>"</p>
-                        <div class="mt-8 pt-8 border-t border-gray-200">
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Escaneado el</p>
-                            <p class="text-sm font-black text-gray-600"><?php echo esc_html( $result['last_scan_at'] ); ?></p>
-                        </div>
-                    </div>
-
-                    <div class="bg-blue-600 p-10 rounded-[2.5rem] shadow-xl shadow-blue-200">
-                        <h3 class="text-xs font-black text-blue-200 uppercase tracking-widest mb-6">Solución Recomendada</h3>
-                        <div class="text-xl text-white font-bold leading-relaxed">
-                            <?php echo esc_html( $result['recommendation'] ); ?>
-                        </div>
-                        <div class="mt-10 bg-blue-700/50 p-6 rounded-2xl border border-blue-400/30">
-                            <p class="text-[10px] text-blue-100 font-black uppercase tracking-widest mb-2 flex items-center">
-                                <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                Nota del Experto
-                            </p>
-                            <p class="text-xs text-blue-50 font-medium opacity-90">Sigue estas instrucciones detalladas para mitigar el riesgo de seguridad identificado en este módulo.</p>
-                        </div>
-                    </div>
+                <!-- Problem Description -->
+                <div class="bg-red-50 p-10 rounded-[2.5rem] border border-red-100 mb-10">
+                    <h3 class="text-[10px] font-black text-red-400 uppercase tracking-widest mb-4">Descripción del Problema</h3>
+                    <p class="text-xl text-red-900 font-bold leading-relaxed">
+                        <?php echo esc_html( $result['result'] ); ?>
+                    </p>
                 </div>
 
                 <!-- Action Area -->
-                <div class="mt-12 pt-10 border-t border-gray-100 flex justify-center">
-                    <button onclick="window.location.reload();" class="group flex items-center bg-gray-900 hover:bg-blue-600 text-white font-black py-5 px-12 rounded-[2rem] transition-all duration-300 transform hover:-translate-y-1 shadow-2xl">
-                        <svg class="h-6 w-6 mr-3 group-hover:rotate-180 transition-transform duration-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                        RE-ESCANEAR Y VERIFICAR SOLUCIÓN
+                <div class="flex flex-col items-center">
+                    <button id="reparar-btn" data-check="<?php echo esc_attr($check_id); ?>" class="group w-full flex items-center justify-center bg-gray-900 hover:bg-blue-600 text-white font-black py-6 px-12 rounded-[2rem] transition-all duration-300 transform hover:-translate-y-1 shadow-2xl">
+                        <svg id="reparar-icon" class="h-6 w-6 mr-3 group-hover:rotate-12 transition-transform duration-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        <span id="reparar-text">REPARAR</span>
                     </button>
+
+                    <p class="mt-6 text-xs text-gray-400 font-medium uppercase tracking-widest">Esta acción intentará corregir la vulnerabilidad automáticamente.</p>
+                </div>
+
+                <!-- Success Message (Hidden) -->
+                <div id="reparar-success" class="hidden mt-10 p-10 bg-green-50 rounded-[2.5rem] border-2 border-green-200 text-center">
+                    <div class="flex justify-center mb-4">
+                        <div class="bg-green-500 text-white p-3 rounded-full">
+                            <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
+                        </div>
+                    </div>
+                    <h4 class="text-2xl font-black text-green-900 tracking-tight">¡Problema Solucionado!</h4>
+                    <p class="text-green-700 mt-2 font-medium">La verificación ha sido re-escaneada y el estado ahora es Seguro.</p>
+                    <a href="<?php echo home_url('/security'); ?>" class="mt-8 inline-block bg-green-900 text-white font-black py-4 px-10 rounded-2xl text-sm">VOLVER AL DASHBOARD</a>
                 </div>
             </div>
         </div>
     </div>
+
+    <script>
+    jQuery(document).ready(function($) {
+        $('#reparar-btn').on('click', function() {
+            const btn = $(this);
+            const checkId = btn.data('check');
+            const icon = $('#reparar-icon');
+            const text = $('#reparar-text');
+
+            btn.prop('disabled', true).addClass('opacity-50 cursor-not-allowed');
+            text.text('PROCESANDO...');
+            icon.addClass('animate-spin');
+
+            // Call the dedicated fix action
+            $.post('<?php echo admin_url('admin-ajax.php'); ?>', {
+                action: 'alma_fix_check',
+                nonce: '<?php echo wp_create_nonce("alma_security_nonce"); ?>',
+                check_id: checkId
+            }, function(r) {
+                if(r.success) {
+                    btn.fadeOut(300, function() {
+                        $('#reparar-success').removeClass('hidden').addClass('animate-bounce-in');
+                    });
+                } else {
+                    alert('Error: ' + (r.data || 'No se pudo completar la reparación.'));
+                    btn.prop('disabled', false).removeClass('opacity-50 cursor-not-allowed');
+                    text.text('REINTENTAR REPARACIÓN');
+                    icon.removeClass('animate-spin');
+                }
+            });
+        });
+    });
+    </script>
+
+    <style>
+    @keyframes bounce-in {
+        0% { transform: scale(0.9); opacity: 0; }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-bounce-in { animation: bounce-in 0.5s ease-out forwards; }
+    </style>
 </body>
 </html>

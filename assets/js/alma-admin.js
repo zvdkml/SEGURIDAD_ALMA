@@ -68,6 +68,17 @@
             showCheckDetails(checkId);
         });
 
+        // Ensure fix buttons are visible on initial load based on data-status
+        $('.group\\/row').each(function() {
+            const status = $(this).attr('data-status');
+            const fixBtn = $(this).find('.fix-check-btn');
+            if (status === 'warning' || status === 'critical') {
+                fixBtn.removeClass('hidden');
+            } else {
+                fixBtn.addClass('hidden');
+            }
+        });
+
         $('.status-filter-btn').on('click', function() {
             const filter = $(this).data('filter');
             applyFilter(filter);

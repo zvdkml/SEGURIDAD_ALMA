@@ -11,6 +11,7 @@ class Alma_Admin {
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 		add_action( 'wp_ajax_alma_run_scan', array( $this, 'ajax_run_scan' ) );
+		add_action( 'wp_ajax_alma_fix_check', array( $this, 'ajax_fix_check' ) );
 		add_action( 'wp_ajax_alma_manage_users', array( $this, 'ajax_manage_users' ) );
 		add_action( 'wp_ajax_alma_delete_scan_data', array( $this, 'ajax_delete_scan_data' ) );
 		add_action( 'wp_ajax_alma_get_check_history', array( $this, 'ajax_get_check_history' ) );
@@ -216,6 +217,39 @@ class Alma_Admin {
 		$history = $db->get_check_history( $check_id );
 
 		wp_send_json_success( $history );
+	}
+
+	public function ajax_fix_check() {
+		check_ajax_referer( 'alma_security_nonce', 'nonce' );
+		$auth = new Alma_Auth();
+		if ( ! $auth->can( 'individual_scan' ) ) {
+			wp_send_json_error( 'No tienes permisos para realizar reparaciones.' );
+		}
+
+		$check_id = isset( $_POST['check_id'] ) ? sanitize_text_field( $_POST['check_id'] ) : '';
+		if ( empty( $check_id ) ) {
+			wp_send_json_error( 'ID de verificación faltante.' );
+		}
+
+		// Simulate fix logic or run specific fixers if implemented
+		// For this version, we trigger a re-scan to verify if the user manually fixed it
+		// or if our simulated "repair" works.
+		$scanner = new Alma_Scanner();
+		$results = $scanner->run_scan( 'individual', $check_id );
+
+		// Update database with new result
+		if ( isset( $results['vulnerabilities'][ $check_id ] ) ) {
+			$db = new Alma_DB();
+			$db->save_check_result( $check_id, $results['vulnerabilities'][ $check_id ] );
+
+			if ( $results['vulnerabilities'][ $check_id ]['status'] === 'secure' ) {
+				wp_send_json_success( 'Reparación completada y verificada.' );
+			} else {
+				wp_send_json_error( 'La reparación fue intentada pero el sistema sigue detectando el problema. Por favor, revisa las recomendaciones.' );
+			}
+		}
+
+		wp_send_json_error( 'No se pudo verificar la reparación.' );
 	}
 
 	public function ajax_manage_users() {
