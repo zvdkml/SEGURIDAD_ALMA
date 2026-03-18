@@ -7,7 +7,7 @@ const path = require('path');
 const app = express();
 const PORT = 3000;
 const DB_FILE = path.join(__dirname, 'database.json');
-const API_KEY = 'ALMA-SECURITY-SECRET-KEY';
+const API_KEY = process.env.ALMA_API_KEY || 'ALMA-SECURITY-SECRET-KEY';
 
 app.use(cors());
 app.use(bodyParser.json());

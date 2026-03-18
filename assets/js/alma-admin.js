@@ -316,13 +316,13 @@
         let label = 'Desconocido';
         if (data.status === 'secure') {
             badge.addClass('bg-green-100 text-green-800 border-green-200');
-            label = 'OK';
+            label = 'Seguro';
         } else if (data.status === 'warning') {
             badge.addClass('bg-yellow-100 text-yellow-800 border-yellow-200');
-            label = 'Warning';
+            label = 'Advertencia';
         } else if (data.status === 'critical') {
             badge.addClass('bg-red-100 text-red-800 border-red-200');
-            label = 'Error';
+            label = 'Crítico';
         }
         badge.text(label);
 
@@ -354,7 +354,7 @@
         $('#modal-recommendation').text(row.find('.check-recommendation').text() || 'No hay recomendaciones adicionales.');
 
         modal.removeClass('hidden');
-        content.html('<div class="flex justify-center py-10"><div class="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-900"></div></div>');
+        content.empty().append($('<div class="flex justify-center py-10"><div class="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-900"></div></div>'));
 
         $.get(alma_ajax.ajax_url, {
             action: 'alma_get_check_history',
@@ -362,26 +362,30 @@
             check_id: checkId
         }, function(response) {
             if (response.success) {
-                let html = '';
+                content.empty();
                 if (response.data.length === 0) {
-                    html = '<div class="text-center py-10 text-gray-400 italic">No hay historial para esta verificación.</div>';
+                    content.append($('<div class="text-center py-10 text-gray-400 italic">No hay historial para esta verificación.</div>'));
                 } else {
                     response.data.forEach(item => {
                         const statusColor = item.status === 'secure' ? 'text-green-600' : (item.status === 'warning' ? 'text-yellow-600' : 'text-red-600');
-                        html += `
+                        const statusLabel = item.status === 'secure' ? 'SEGURO' : (item.status === 'warning' ? 'ADVERTENCIA' : 'CRÍTICO');
+
+                        const historyItem = $(`
                             <div class="bg-gray-50 p-6 rounded-2xl border border-gray-100">
                                 <div class="flex justify-between items-center mb-2">
-                                    <span class="text-xs font-black uppercase tracking-widest ${statusColor}">${item.status.toUpperCase()}</span>
-                                    <span class="text-[10px] font-bold text-gray-400">${item.scanned_at}</span>
+                                    <span class="text-xs font-black uppercase tracking-widest ${statusColor}">${statusLabel}</span>
+                                    <span class="text-[10px] font-bold text-gray-400"></span>
                                 </div>
-                                <p class="text-sm text-gray-700 font-medium">${item.result}</p>
+                                <p class="text-sm text-gray-700 font-medium"></p>
                             </div>
-                        `;
+                        `);
+                        historyItem.find('.text-gray-400').text(item.scanned_at);
+                        historyItem.find('.text-gray-700').text(item.result);
+                        content.append(historyItem);
                     });
                 }
-                content.html(html);
             } else {
-                content.html('<div class="text-red-500 font-bold p-4">Error: ' + response.data + '</div>');
+                content.html('<div class="text-red-500 font-bold p-4"></div>').find('div').text('Error: ' + response.data);
             }
         });
     }
