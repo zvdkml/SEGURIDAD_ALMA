@@ -216,8 +216,14 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-50 font-medium">
-                                <?php foreach ( $data['checks'] as $check_id ) : ?>
-                                <tr id="check-row-<?php echo $check_id; ?>" class="group/row hover:bg-gray-50/30 transition-colors" data-status="pending">
+                                <?php
+                                $db = new Alma_DB();
+                                foreach ( $data['checks'] as $check_id ) :
+                                    $check_res = $db->get_check_result($check_id);
+                                    $initial_status = $check_res ? $check_res['status'] : 'pending';
+                                    $show_fix = in_array($initial_status, array('warning', 'critical'));
+                                ?>
+                                <tr id="check-row-<?php echo $check_id; ?>" class="group/row hover:bg-gray-50/30 transition-colors" data-status="<?php echo $initial_status; ?>">
                                     <td class="px-8 py-6">
                                         <div class="font-bold text-gray-800 check-name">--</div>
                                         <div class="text-[9px] text-gray-400 uppercase tracking-tighter mt-1 font-black opacity-0 group-hover/row:opacity-100 transition-opacity">ID: <?php echo $check_id; ?></div>
@@ -248,6 +254,9 @@
                                             <button data-check="<?php echo $check_id; ?>" data-section="<?php echo $key; ?>" class="run-individual-scan-btn bg-gray-900 hover:bg-blue-600 text-white font-black py-2.5 px-6 rounded-xl transition-all shadow-lg shadow-gray-200 hover:shadow-blue-200 text-[10px] uppercase tracking-widest whitespace-nowrap active:scale-95">
                                                 Scan
                                             </button>
+                                            <a href="<?php echo home_url('/security/fix?check=' . $check_id); ?>" class="fix-check-btn <?php echo $show_fix ? '' : 'hidden'; ?> bg-red-600 hover:bg-red-700 text-white font-black py-2.5 px-6 rounded-xl transition-all shadow-lg shadow-red-200 hover:shadow-red-300 text-[10px] uppercase tracking-widest whitespace-nowrap active:scale-95">
+                                                Solucionar
+                                            </a>
                                         </div>
                                     </td>
                                 </tr>

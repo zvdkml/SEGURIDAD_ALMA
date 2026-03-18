@@ -113,6 +113,10 @@ class Alma_DB {
 	}
 
 	public function get_result( $check_id ) {
+		return $this->get_check_result( $check_id );
+	}
+
+	public function get_check_result( $check_id ) {
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'alma_scans';
 		return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table_name WHERE check_id = %s", $check_id ), ARRAY_A );

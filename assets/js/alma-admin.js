@@ -335,6 +335,13 @@
         else if (risk === 'Medio') riskBadge.addClass('bg-orange-100 text-orange-800 border-orange-200');
         else riskBadge.addClass('bg-blue-100 text-blue-800 border-blue-200');
 
+        const fixBtn = row.find('.fix-check-btn');
+        if (data.status === 'warning' || data.status === 'critical') {
+            fixBtn.removeClass('hidden');
+        } else {
+            fixBtn.addClass('hidden');
+        }
+
         if (data.recommendation) {
             row.find('.check-recommendation').text(data.recommendation);
             row.find('.check-recommendation-box').removeClass('hidden');
