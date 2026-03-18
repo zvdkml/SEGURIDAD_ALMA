@@ -112,6 +112,11 @@ if ( $result['status'] === 'warning' ) {
                 if(r.success) {
                     btn.fadeOut(300, function() {
                         $('#reparar-success').removeClass('hidden').addClass('animate-bounce-in');
+
+                        // Notify opener if available
+                        if (window.opener && typeof window.opener.almaRefreshDashboard === 'function') {
+                            window.opener.almaRefreshDashboard();
+                        }
                     });
                 } else {
                     alert('Error: ' + (r.data || 'No se pudo completar la reparación.'));

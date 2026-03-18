@@ -243,6 +243,13 @@ class Alma_Admin {
 			$db->save_check_result( $check_id, $results['vulnerabilities'][ $check_id ] );
 
 			if ( $results['vulnerabilities'][ $check_id ]['status'] === 'secure' ) {
+				// Success: Synchronize global score and latest scan data
+				$full_scan = $scanner->run_scan( 'all' );
+				$db->save_score_history( $full_scan['score'] );
+
+				$history = new Alma_History();
+				$history->save_scan( $full_scan, 'all' );
+
 				wp_send_json_success( 'Reparación completada y verificada.' );
 			} else {
 				wp_send_json_error( 'La reparación fue intentada pero el sistema sigue detectando el problema. Por favor, revisa las recomendaciones.' );

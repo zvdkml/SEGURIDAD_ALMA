@@ -533,4 +533,10 @@
         }
     }
 
+    // Global refresh function for synchronized updates
+    window.almaRefreshDashboard = function() {
+        console.log('Refreshing dashboard data...');
+        location.reload();
+    };
+
 })(jQuery);
