@@ -231,10 +231,11 @@ class Alma_Admin {
 			wp_send_json_error( 'ID de verificación faltante.' );
 		}
 
-		// Simulate fix logic or run specific fixers if implemented
-		// For this version, we trigger a re-scan to verify if the user manually fixed it
-		// or if our simulated "repair" works.
 		$scanner = new Alma_Scanner();
+
+		// Attempt to automatically fix the issue
+		$scanner->fix_check( $check_id );
+
 		$results = $scanner->run_scan( 'individual', $check_id );
 
 		// Update database with new result
