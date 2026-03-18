@@ -84,7 +84,6 @@ if ( $result['status'] === 'warning' ) {
                         </div>
                     </div>
                     <h4 class="text-2xl font-black text-green-900 tracking-tight">¡Problema Solucionado!</h4>
-                    <p class="text-green-700 mt-2 font-medium">La verificación ha sido re-escaneada y el estado ahora es Seguro.</p>
                     <a href="<?php echo home_url('/security'); ?>" class="mt-8 inline-block bg-green-900 text-white font-black py-4 px-10 rounded-2xl text-sm">VOLVER AL DASHBOARD</a>
                 </div>
             </div>

@@ -686,6 +686,31 @@ class Alma_Scanner {
 		}
 	}
 
+	public function fix_check( $check_id ) {
+		switch ( $check_id ) {
+			case 'sensitive_files':
+				$files = array( 'readme.html', 'license.txt', 'wp-config-sample.php' );
+				foreach ( $files as $file ) {
+					$path = ABSPATH . $file;
+					if ( file_exists( $path ) ) {
+						@unlink( $path );
+					}
+				}
+				return true;
+
+			case 'directory_listing':
+				$upload_dir = wp_upload_dir();
+				$path = $upload_dir['basedir'] . '/index.php';
+				if ( ! file_exists( $path ) ) {
+					@file_put_contents( $path, '<?php // Silence is golden' );
+				}
+				return true;
+
+			default:
+				return false;
+		}
+	}
+
 	private function get_vulnerability_counts( $results ) {
 		$counts = array(
 			'critico' => 0,
