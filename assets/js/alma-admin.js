@@ -340,10 +340,6 @@
             row.find('.check-recommendation-box').removeClass('hidden');
         }
 
-        if (data.last_scan_at) {
-            row.find('.check-last-scan').text(data.last_scan_at);
-        }
-
         row.attr('data-status', data.status);
         applyFilter(currentFilter);
         updateAlerts();

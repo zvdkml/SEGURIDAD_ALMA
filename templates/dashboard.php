@@ -208,12 +208,11 @@
                         <table class="w-full text-left border-collapse table-fixed">
                             <thead>
                                 <tr class="bg-gray-50/80 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">
-                                    <th class="px-8 py-5 w-1/4">Nombre de la verificación</th>
-                                    <th class="px-8 py-5 w-1/6 text-center">Estado</th>
-                                    <th class="px-8 py-5 w-1/4">Resultado</th>
-                                    <th class="px-8 py-5 w-1/6 text-center">Riesgo</th>
-                                    <th class="px-8 py-5 w-1/6 text-center">Último escaneo</th>
-                                    <th class="px-8 py-5 w-1/6 text-right">Acción</th>
+                                    <th class="px-8 py-5 w-3/12">Nombre de la verificación</th>
+                                    <th class="px-8 py-5 w-2/12 text-center">Estado</th>
+                                    <th class="px-8 py-5 w-3/12">Resultado</th>
+                                    <th class="px-8 py-5 w-2/12 text-center">Riesgo</th>
+                                    <th class="px-8 py-5 w-2/12 text-right">Acción</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-50 font-medium">
@@ -238,11 +237,6 @@
                                         <span class="check-risk-badge inline-flex items-center px-3 py-0.5 rounded-lg text-[9px] font-bold uppercase bg-gray-50 text-gray-400 border border-gray-100">
                                             --
                                         </span>
-                                    </td>
-                                    <td class="px-8 py-6 text-center">
-                                        <div class="flex flex-col items-center gap-1">
-                                            <span class="text-[10px] font-bold text-gray-400 uppercase check-last-scan">Nunca</span>
-                                        </div>
                                     </td>
                                     <td class="px-8 py-6 text-right">
                                         <div class="flex justify-end gap-2">
