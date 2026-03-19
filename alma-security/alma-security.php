@@ -77,7 +77,7 @@ class Seguridad_Alma {
 	public function handle_fix_page() {
 		$request_uri = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH );
 		$site_path = parse_url( home_url(), PHP_URL_PATH );
-		$target_path = rtrim( $site_path, '/' ) . '/security/fix';
+		$target_path = rtrim( (string) $site_path, '/' ) . '/security/fix';
 
 		if ( $request_uri === $target_path ) {
 			if ( ! current_user_can( 'manage_options' ) ) {
