@@ -74,6 +74,13 @@ if ( $result['status'] === 'warning' ) {
                     </button>
 
                     <p class="mt-6 text-xs text-gray-400 font-medium uppercase tracking-widest">Esta acción intentará corregir la vulnerabilidad automáticamente.</p>
+
+                    <div class="mt-12 w-full pt-8 border-t border-gray-100 flex justify-end">
+                        <a href="<?php echo home_url('/security/issues'); ?>" class="group flex items-center text-gray-400 hover:text-blue-600 font-black transition-all uppercase tracking-widest text-xs">
+                            Siguiente paso (Ver todos los problemas)
+                            <svg class="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7" /></svg>
+                        </a>
+                    </div>
                 </div>
 
                 <!-- Success Message (Hidden) -->

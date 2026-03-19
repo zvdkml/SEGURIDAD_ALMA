@@ -77,14 +77,19 @@ class Seguridad_Alma {
 	public function handle_fix_page() {
 		$request_uri = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH );
 		$site_path = parse_url( home_url(), PHP_URL_PATH );
-		$target_path = rtrim( (string) $site_path, '/' ) . '/security/fix';
+		$fix_path = rtrim( (string) $site_path, '/' ) . '/security/fix';
+		$issues_path = rtrim( (string) $site_path, '/' ) . '/security/issues';
 
-		if ( $request_uri === $target_path ) {
+		if ( $request_uri === $fix_path || $request_uri === $issues_path ) {
 			if ( ! current_user_can( 'manage_options' ) ) {
 				wp_die( 'Acceso denegado. No tienes permisos para ver esta página.' );
 			}
 
-			include ALMA_SECURITY_PATH . 'templates/fix.php';
+			if ( $request_uri === $fix_path ) {
+				include ALMA_SECURITY_PATH . 'templates/fix.php';
+			} else {
+				include ALMA_SECURITY_PATH . 'templates/issues.php';
+			}
 			exit;
 		}
 	}
