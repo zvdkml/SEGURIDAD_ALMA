@@ -1,7 +1,7 @@
 <?php
 /**
- * Plugin Name: Seguridad Alma
- * Plugin URI: https://github.com/zvdkml/SEGURIDAD_ALMA
+ * Plugin Name: Alma Security
+ * Plugin URI: https://github.com/zvdkml/alma-security
  * Description: Plugin de seguridad avanzado para WordPress con dashboard visual moderno.
  * Version: 1.0.0
  * Author: Jules
