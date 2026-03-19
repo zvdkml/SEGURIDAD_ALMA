@@ -270,6 +270,17 @@
         <?php endforeach; ?>
     </div>
 
+    <!-- Navigation Footer -->
+    <div class="mt-20 mb-20 flex flex-col items-center">
+        <a href="<?php echo home_url('/security/issues'); ?>" class="group flex items-center bg-gray-900 hover:bg-blue-600 text-white font-black py-5 px-16 rounded-[2rem] transition-all duration-300 transform hover:-translate-y-1 shadow-2xl uppercase tracking-[0.2em] text-sm">
+            Siguiente paso
+            <svg class="h-5 w-5 ml-4 group-hover:translate-x-2 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+        </a>
+        <p class="mt-6 text-xs text-gray-400 font-bold uppercase tracking-widest">Revisar y gestionar todos los problemas detectados</p>
+    </div>
+
     <!-- History Modal -->
     <div id="history-modal" class="hidden fixed inset-0 z-[100000] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
         <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
