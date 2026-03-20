@@ -699,10 +699,13 @@ class Alma_Scanner {
 				return true;
 
 			case 'xmlrpc':
-				// This fix is handled by filters, which we assume are applied or this is a simulation
+				update_option( 'alma_fix_xmlrpc', 1 );
+				add_filter( 'xmlrpc_enabled', '__return_false', 999 );
 				return true;
 
 			case 'directory_listing':
+				update_option( 'alma_fix_directory_listing', 1 );
+				// The index.php file creation below handles the detection fix
 				$upload_dir = wp_upload_dir();
 				$path = $upload_dir['basedir'] . '/index.php';
 				if ( ! file_exists( $path ) ) {

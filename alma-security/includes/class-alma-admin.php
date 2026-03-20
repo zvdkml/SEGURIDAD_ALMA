@@ -242,8 +242,12 @@ class Alma_Admin {
 		if ( isset( $results['vulnerabilities'][ $check_id ] ) ) {
 			$db = new Alma_DB();
 
-			// Force "secure" status if fix_check was successful,
-			// though run_scan should already reflect this.
+			// Force status to secure if fix_check says so, even if scan lag exists
+			if ( $results['vulnerabilities'][ $check_id ]['status'] !== 'secure' ) {
+				// Re-verify strictly
+				$results = $scanner->run_scan( 'individual', $check_id );
+			}
+
 			$db->save_check_result( $check_id, $results['vulnerabilities'][ $check_id ] );
 
 			if ( $results['vulnerabilities'][ $check_id ]['status'] === 'secure' ) {

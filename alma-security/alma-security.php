@@ -59,6 +59,17 @@ class Seguridad_Alma {
 		if ( class_exists( 'Alma_Cron' ) ) {
 			new Alma_Cron();
 		}
+
+		// Apply security mitigations from options
+		if ( get_option( 'alma_fix_xmlrpc' ) ) {
+			add_filter( 'xmlrpc_enabled', '__return_false', 999 );
+		}
+		if ( get_option( 'alma_fix_directory_listing' ) ) {
+			// This is also handled by creating index.php, but this is a secondary layer
+			add_filter( 'restricted_extentions', function( $exts ) {
+				return array_merge( (array) $exts, array( 'php', 'sql' ) );
+			} );
+		}
 	}
 
 	public function activate() {

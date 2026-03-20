@@ -156,7 +156,7 @@ $has_issues = ! empty( $issues_by_module );
             }, function(r) {
                 if(r.success) {
                     // Problem fixed: remove the row and update UI
-                    row.fadeOut(400, function() {
+                    row.fadeOut(300, function() {
                         row.remove();
 
                         // Check if module block is now empty
