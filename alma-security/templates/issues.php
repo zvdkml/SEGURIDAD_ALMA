@@ -155,29 +155,33 @@ $has_issues = ! empty( $issues_by_module );
                 check_id: checkId
             }, function(r) {
                 if(r.success) {
+                    // Problem fixed: remove the row and update UI
                     row.fadeOut(400, function() {
                         row.remove();
 
-                        // Check if module block is empty
+                        // Check if module block is now empty
                         if (moduleBlock.find('.issue-row').length === 0) {
                             moduleBlock.fadeOut(400, function() {
                                 moduleBlock.remove();
 
-                                // Check if all modules are gone
+                                // Check if all pending issues are cleared
                                 if ($('.issue-module-block').length === 0) {
-                                    location.reload(); // Shows the "no issues" message
+                                    location.reload(); // Refreshes to show the "No problems" state
                                 }
                             });
                         }
                     });
 
-                    // Notify dashboard if it's open
+                    // Synchronize with the dashboard state
                     if (window.opener && typeof window.opener.almaRefreshDashboard === 'function') {
                         window.opener.almaRefreshDashboard();
                     }
                 } else {
-                    alert('No se pudo reparar automáticamente: ' + (r.data || 'Revisa las recomendaciones en el dashboard.'));
-                    btn.prop('disabled', false).removeClass('opacity-50 cursor-not-allowed').text('REINTENTAR');
+                    // Logic error or unfixable state
+                    const errorMsg = r.data || 'El problema persiste después del intento de reparación. Por favor, realiza la acción manualmente.';
+                    alert('Reparación fallida: ' + errorMsg);
+
+                    btn.prop('disabled', false).removeClass('opacity-50 cursor-not-allowed').text('REINTENTAR TAREA');
                 }
             });
         });

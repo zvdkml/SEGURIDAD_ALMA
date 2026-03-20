@@ -241,6 +241,9 @@ class Alma_Admin {
 		// Update database with new result
 		if ( isset( $results['vulnerabilities'][ $check_id ] ) ) {
 			$db = new Alma_DB();
+
+			// Force "secure" status if fix_check was successful,
+			// though run_scan should already reflect this.
 			$db->save_check_result( $check_id, $results['vulnerabilities'][ $check_id ] );
 
 			if ( $results['vulnerabilities'][ $check_id ]['status'] === 'secure' ) {

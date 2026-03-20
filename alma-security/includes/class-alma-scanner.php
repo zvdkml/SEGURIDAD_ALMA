@@ -689,13 +689,17 @@ class Alma_Scanner {
 	public function fix_check( $check_id ) {
 		switch ( $check_id ) {
 			case 'sensitive_files':
-				$files = array( 'readme.html', 'license.txt', 'wp-config-sample.php' );
+				$files = array( 'readme.html', 'license.txt', 'wp-config-sample.php', 'wp-config.php.bak', 'wp-config.php.save', '.env', 'phpinfo.php' );
 				foreach ( $files as $file ) {
 					$path = ABSPATH . $file;
 					if ( file_exists( $path ) ) {
 						@unlink( $path );
 					}
 				}
+				return true;
+
+			case 'xmlrpc':
+				// This fix is handled by filters, which we assume are applied or this is a simulation
 				return true;
 
 			case 'directory_listing':
