@@ -42,8 +42,8 @@ function wp_remote_retrieve_response_code($response) {
 
 function is_wp_error($response) { return false; }
 
-require_once 'includes/data-collector.php';
-require_once 'includes/api-sender.php';
+require_once __DIR__ . '/../includes/data-collector.php';
+require_once __DIR__ . '/../includes/api-sender.php';
 
 echo "Testing Monitoring Integration...\n";
 $collector = new Alma_Data_Collector();

@@ -246,10 +246,8 @@
                                     </td>
                                     <td class="px-8 py-6 text-right">
                                         <div class="flex justify-end items-center gap-3">
-                                            <button data-check="<?php echo $check_id; ?>" class="view-check-history-btn p-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-500 hover:text-blue-600 rounded-xl transition-all shadow-sm hover:shadow-md" title="Ver detalles">
-                                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                                </svg>
+                                            <button data-check="<?php echo $check_id; ?>" class="view-check-history-btn p-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-500 hover:text-blue-600 rounded-xl transition-all shadow-sm hover:shadow-md flex items-center justify-center" title="Ver detalles">
+                                                <span class="dashicons dashicons-search text-sm"></span>
                                             </button>
                                             <button data-check="<?php echo $check_id; ?>" data-section="<?php echo $key; ?>" class="run-individual-scan-btn bg-gray-900 hover:bg-blue-600 text-white font-black py-2.5 px-6 rounded-xl transition-all shadow-lg shadow-gray-200 hover:shadow-blue-200 text-[10px] uppercase tracking-widest whitespace-nowrap active:scale-95">
                                                 Scan

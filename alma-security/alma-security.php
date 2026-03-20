@@ -70,6 +70,13 @@ class Seguridad_Alma {
 				return array_merge( (array) $exts, array( 'php', 'sql' ) );
 			} );
 		}
+		if ( get_option( 'alma_fix_debug_mode' ) ) {
+			@ini_set( 'display_errors', '0' );
+			@error_reporting( 0 );
+			if ( ! defined( 'WP_DEBUG_DISPLAY' ) ) {
+				define( 'WP_DEBUG_DISPLAY', false );
+			}
+		}
 	}
 
 	public function activate() {
@@ -94,7 +101,7 @@ class Seguridad_Alma {
 		if ( ! empty( $site_path ) && strpos( $path, $site_path ) === 0 ) {
 			$relative_path = substr( $path, strlen( $site_path ) );
 		}
-		$relative_path = '/' . ltrim( untrailingslashit( $relative_path ), '/' );
+		$relative_path = '/' . ltrim( untrailingslashit( (string) $relative_path ), '/' );
 
 		if ( $relative_path === '/security/fix' || $relative_path === '/security/issues' ) {
 			if ( ! current_user_can( 'manage_options' ) ) {

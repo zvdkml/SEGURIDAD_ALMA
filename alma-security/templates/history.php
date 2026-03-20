@@ -36,7 +36,11 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
                                 <span class="font-bold text-blue-600"><?php echo isset($scan['counts']['bajo']) ? $scan['counts']['bajo'] : '0'; ?></span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600 hover:text-blue-900 cursor-pointer view-scan-detail" data-index="<?php echo array_search( $scan, $history_data ); ?>">Ver detalle</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                <button class="view-scan-detail p-2 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg transition-all" data-index="<?php echo array_search( $scan, $history_data ); ?>" title="Ver detalles">
+                                    <span class="dashicons dashicons-search"></span>
+                                </button>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 <?php endif; ?>

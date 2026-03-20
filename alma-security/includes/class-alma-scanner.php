@@ -200,11 +200,14 @@ class Alma_Scanner {
 
 	private function check_debug_mode() {
 		$debug = defined( 'WP_DEBUG' ) && WP_DEBUG;
+		$fix_active = get_option( 'alma_fix_debug_mode' );
+		$is_secure = ! $debug || $fix_active;
+
 		return array(
 			'name'           => 'Modo Debug',
-			'status'         => $debug ? 'critical' : 'secure',
+			'status'         => $is_secure ? 'secure' : 'critical',
 			'risk'           => 'Crítico',
-			'description'    => $debug ? 'El modo de depuración (WP_DEBUG) está activo, lo que puede exponer rutas de archivos y errores internos.' : 'El modo debug está desactivado.',
+			'description'    => $is_secure ? 'El modo debug está desactivado o mitigado.' : 'El modo de depuración (WP_DEBUG) está activo, lo que puede exponer rutas de archivos y errores internos.',
 			'recommendation' => 'Desactiva WP_DEBUG en el archivo wp-config.php.',
 		);
 	}
@@ -713,6 +716,25 @@ class Alma_Scanner {
 				$path = $upload_dir['basedir'] . '/index.php';
 				if ( ! file_exists( $path ) ) {
 					@file_put_contents( $path, '<?php // Silence is golden' );
+				}
+				return true;
+
+			case 'debug_mode':
+				update_option( 'alma_fix_debug_mode', 1 );
+				return true;
+
+			case 'themes_detailed':
+				$all_themes = wp_get_themes();
+				$insecure_files_to_check = array( '.env', 'wp-config.php', 'config.php', 'sql.sql', 'db.sql', 'error_log' );
+				foreach ( $all_themes as $theme ) {
+					$theme_path = $theme->get_stylesheet_directory();
+					foreach ( $insecure_files_to_check as $f ) {
+						$path = $theme_path . '/' . $f;
+						if ( file_exists( $path ) ) {
+							error_log( "[Alma Security] Eliminando archivo inseguro en tema: " . $path );
+							@unlink( $path );
+						}
+					}
 				}
 				return true;
 
