@@ -47,10 +47,11 @@ class Alma_Scanner {
 			$checks_to_run = isset( $all_checks[ $type ] ) ? $all_checks[ $type ] : array();
 		}
 
-		foreach ( $checks_to_run as $check_id ) {
-			$method = 'check_' . $check_id;
+		foreach ( $checks_to_run as $id ) {
+			$method = 'check_' . $id;
 			if ( method_exists( $this, $method ) ) {
-				$results[ $check_id ] = $this->$method();
+				$results[ $id ] = $this->$method();
+				error_log( "[Alma Security] Scanner check: $id -> status: " . $results[$id]['status'] );
 			}
 		}
 
@@ -687,12 +688,14 @@ class Alma_Scanner {
 	}
 
 	public function fix_check( $check_id ) {
+		error_log( "[Alma Security] Iniciando fix_check para: " . $check_id );
 		switch ( $check_id ) {
 			case 'sensitive_files':
 				$files = array( 'readme.html', 'license.txt', 'wp-config-sample.php', 'wp-config.php.bak', 'wp-config.php.save', '.env', 'phpinfo.php' );
 				foreach ( $files as $file ) {
 					$path = ABSPATH . $file;
 					if ( file_exists( $path ) ) {
+						error_log( "[Alma Security] Intentando eliminar archivo sensible: " . $file );
 						@unlink( $path );
 					}
 				}

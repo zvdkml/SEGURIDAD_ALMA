@@ -220,13 +220,16 @@ class Alma_Admin {
 	}
 
 	public function ajax_fix_check() {
+		error_log( "[Alma Security] Iniciando ajax_fix_check" );
 		check_ajax_referer( 'alma_security_nonce', 'nonce' );
 		$auth = new Alma_Auth();
 		if ( ! $auth->can( 'individual_scan' ) ) {
+			error_log( "[Alma Security] Error: Permisos insuficientes" );
 			wp_send_json_error( 'No tienes permisos para realizar reparaciones.' );
 		}
 
 		$check_id = isset( $_POST['check_id'] ) ? sanitize_text_field( $_POST['check_id'] ) : '';
+		error_log( "[Alma Security] Parámetro check recibido: " . $check_id );
 		if ( empty( $check_id ) ) {
 			wp_send_json_error( 'ID de verificación faltante.' );
 		}
@@ -234,6 +237,7 @@ class Alma_Admin {
 		$scanner = new Alma_Scanner();
 
 		// Attempt to automatically fix the issue
+		error_log( "[Alma Security] Ejecutando fix_check para: " . $check_id );
 		$scanner->fix_check( $check_id );
 
 		$results = $scanner->run_scan( 'individual', $check_id );
@@ -244,10 +248,12 @@ class Alma_Admin {
 
 			// Force status to secure if fix_check says so, even if scan lag exists
 			if ( $results['vulnerabilities'][ $check_id ]['status'] !== 'secure' ) {
+				error_log( "[Alma Security] El escaneo inicial post-reparación no devolvió 'secure'. Re-verificando..." );
 				// Re-verify strictly
 				$results = $scanner->run_scan( 'individual', $check_id );
 			}
 
+			error_log( "[Alma Security] Guardando nuevo estado en DB: " . $results['vulnerabilities'][ $check_id ]['status'] );
 			$db->save_check_result( $check_id, $results['vulnerabilities'][ $check_id ] );
 
 			if ( $results['vulnerabilities'][ $check_id ]['status'] === 'secure' ) {

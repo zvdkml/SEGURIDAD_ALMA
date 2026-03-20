@@ -147,6 +147,7 @@ $has_issues = ! empty( $issues_by_module );
             const row = btn.closest('.issue-row');
             const moduleBlock = btn.closest('.issue-module-block');
 
+            console.log("[Alma Security] Click en Reparar tarea para: " + checkId);
             btn.prop('disabled', true).addClass('opacity-50 cursor-not-allowed').text('REPARANDO...');
 
             $.post('<?php echo admin_url('admin-ajax.php'); ?>', {
