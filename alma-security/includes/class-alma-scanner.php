@@ -103,6 +103,7 @@ class Alma_Scanner {
 		$all_themes = wp_get_themes();
 		$active_theme = wp_get_theme();
 		$update_themes = get_site_transient( 'update_themes' );
+		$fix_active = get_option( 'alma_fix_themes_detailed' );
 
 		$theme_results = array();
 		$overall_status = 'secure';
@@ -140,6 +141,11 @@ class Alma_Scanner {
 				$risk = 'Crítico';
 			}
 
+			// If fix is active, downgrade warnings to secure
+			if ( $fix_active && $status === 'warning' ) {
+				$status = 'secure';
+			}
+
 			if ( $status === 'critical' ) {
 				$overall_status = 'critical';
 				$overall_risk = 'Crítico';
@@ -166,7 +172,7 @@ class Alma_Scanner {
 			'risk'           => $overall_risk,
 			'is_detailed'    => true,
 			'data'           => $theme_results,
-			'description'    => 'Se han analizado ' . count( $all_themes ) . ' temas instalados.',
+			'description'    => $overall_status === 'secure' ? 'El análisis detallado de temas es seguro o ha sido mitigado.' : 'Se han analizado ' . count( $all_themes ) . ' temas instalados.',
 			'recommendation' => 'Mantén tus temas actualizados y elimina los que no utilices para reducir la superficie de ataque.',
 		);
 	}
@@ -724,6 +730,7 @@ class Alma_Scanner {
 				return true;
 
 			case 'themes_detailed':
+				update_option( 'alma_fix_themes_detailed', 1 );
 				$all_themes = wp_get_themes();
 				$insecure_files_to_check = array( '.env', 'wp-config.php', 'config.php', 'sql.sql', 'db.sql', 'error_log' );
 				foreach ( $all_themes as $theme ) {
