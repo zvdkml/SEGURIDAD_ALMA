@@ -77,6 +77,14 @@ class Seguridad_Alma {
 				define( 'WP_DEBUG_DISPLAY', false );
 			}
 		}
+		if ( get_option( 'alma_fix_login_attempts' ) ) {
+			add_action( 'wp_login_failed', array( $this, 'mitigate_login_attacks' ) );
+		}
+	}
+
+	public function mitigate_login_attacks() {
+		// Simple delay to slow down brute force
+		sleep( 2 );
 	}
 
 	public function activate() {

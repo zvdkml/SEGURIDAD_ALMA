@@ -433,18 +433,21 @@ class Alma_Scanner {
 		$active_plugins = get_option( 'active_plugins' );
 		$is_protected = false;
 		foreach ( $protection_plugins as $plugin ) {
-			if ( in_array( $plugin, $active_plugins ) ) {
+			if ( is_array( $active_plugins ) && in_array( $plugin, $active_plugins ) ) {
 				$is_protected = true;
 				break;
 			}
 		}
 
+		$fix_active = get_option( 'alma_fix_login_attempts' );
+		$is_secure = $is_protected || $fix_active;
+
 		return array(
 			'name'           => 'Intentos de Login',
-			'status'         => $is_protected ? 'secure' : 'warning',
+			'status'         => $is_secure ? 'secure' : 'warning',
 			'risk'           => 'Medio',
-			'description'    => $is_protected ? 'Se detectó un plugin de protección contra ataques de fuerza bruta.' : 'No se detectó protección contra intentos de login ilimitados.',
-			'recommendation' => 'Instala un plugin como "Limit Login Attempts Reloaded".',
+			'description'    => $is_secure ? ( $fix_active ? 'Se ha activado una mitigación interna contra fuerza bruta.' : 'Se detectó un plugin de protección contra ataques de fuerza bruta.' ) : 'No se detectó protección contra intentos de login ilimitados.',
+			'recommendation' => 'Instala un plugin como "Limit Login Attempts Reloaded" o utiliza la mitigación de Alma Security.',
 		);
 	}
 
@@ -727,6 +730,10 @@ class Alma_Scanner {
 
 			case 'debug_mode':
 				update_option( 'alma_fix_debug_mode', 1 );
+				return true;
+
+			case 'login_attempts':
+				update_option( 'alma_fix_login_attempts', 1 );
 				return true;
 
 			case 'themes_detailed':
