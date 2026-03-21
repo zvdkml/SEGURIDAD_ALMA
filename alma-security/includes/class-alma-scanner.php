@@ -569,16 +569,21 @@ class Alma_Scanner {
 		$is_secure = false;
 		$plugins = array( 'wps-hide-login/wps-hide-login.php', 'itsec-login-island' ); // Simplified
 		$active_plugins = get_option( 'active_plugins', array() );
-		foreach ( $plugins as $p ) {
-			if ( in_array( $p, $active_plugins ) ) $is_secure = true;
+		if ( is_array( $active_plugins ) ) {
+			foreach ( $plugins as $p ) {
+				if ( in_array( $p, $active_plugins ) ) $is_secure = true;
+			}
 		}
+
+		$fix_active = get_option( 'alma_fix_hidden_login' );
+		$is_secure = $is_secure || $fix_active;
 
 		return array(
 			'name'           => 'URL de Login Oculta',
 			'status'         => $is_secure ? 'secure' : 'warning',
 			'risk'           => 'Medio',
-			'description'    => $is_secure ? 'Tu URL de login está personalizada.' : 'Utilizas la URL de login por defecto (/wp-admin), facilitando ataques de fuerza bruta.',
-			'recommendation' => 'Usa un plugin para cambiar la URL de acceso.',
+			'description'    => $is_secure ? ( $fix_active ? 'La URL de login ha sido mitigada internamente.' : 'Tu URL de login está personalizada.' ) : 'Utilizas la URL de login por defecto (/wp-admin), facilitando ataques de fuerza bruta.',
+			'recommendation' => 'Usa un plugin para cambiar la URL de acceso o utiliza la mitigación de Alma Security.',
 		);
 	}
 
@@ -734,6 +739,10 @@ class Alma_Scanner {
 
 			case 'login_attempts':
 				update_option( 'alma_fix_login_attempts', 1 );
+				return true;
+
+			case 'hidden_login':
+				update_option( 'alma_fix_hidden_login', 1 );
 				return true;
 
 			case 'themes_detailed':

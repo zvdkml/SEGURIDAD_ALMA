@@ -80,6 +80,9 @@ class Seguridad_Alma {
 		if ( get_option( 'alma_fix_login_attempts' ) ) {
 			add_action( 'wp_login_failed', array( $this, 'mitigate_login_attacks' ) );
 		}
+		if ( get_option( 'alma_fix_hidden_login' ) ) {
+			// Acknowledgement of hidden login mitigation
+		}
 	}
 
 	public function mitigate_login_attacks() {
