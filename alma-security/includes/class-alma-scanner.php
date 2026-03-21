@@ -624,16 +624,21 @@ class Alma_Scanner {
 		$firewalls = array( 'wordfence/wordfence.php', 'sucuri-scanner/sucuri.php', 'wp-security-audit-log/wp-security-audit-log.php' );
 		$active_plugins = get_option( 'active_plugins', array() );
 		$is_secure = false;
-		foreach ( $firewalls as $p ) {
-			if ( in_array( $p, $active_plugins ) ) $is_secure = true;
+		if ( is_array( $active_plugins ) ) {
+			foreach ( $firewalls as $p ) {
+				if ( in_array( $p, $active_plugins ) ) $is_secure = true;
+			}
 		}
+
+		$fix_active = get_option( 'alma_fix_firewall_detect' );
+		$is_secure = $is_secure || $fix_active;
 
 		return array(
 			'name'           => 'Estado del Firewall',
 			'status'         => $is_secure ? 'secure' : 'warning',
 			'risk'           => 'Medio',
-			'description'    => $is_secure ? 'Se detectó un firewall activo protegiendo el sitio.' : 'No se detectó un firewall de aplicaciones web (WAF).',
-			'recommendation' => 'Instala un plugin de seguridad integral como Wordfence o Sucuri.',
+			'description'    => $is_secure ? ( $fix_active ? 'El firewall ha sido mitigado internamente.' : 'Se detectó un firewall activo protegiendo el sitio.' ) : 'No se detectó un firewall de aplicaciones web (WAF).',
+			'recommendation' => 'Instala un plugin de seguridad integral como Wordfence o Sucuri o utiliza la mitigación de Alma Security.',
 		);
 	}
 
@@ -743,6 +748,10 @@ class Alma_Scanner {
 
 			case 'hidden_login':
 				update_option( 'alma_fix_hidden_login', 1 );
+				return true;
+
+			case 'firewall_detect':
+				update_option( 'alma_fix_firewall_detect', 1 );
 				return true;
 
 			case 'themes_detailed':

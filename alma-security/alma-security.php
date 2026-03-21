@@ -83,6 +83,9 @@ class Seguridad_Alma {
 		if ( get_option( 'alma_fix_hidden_login' ) ) {
 			// Acknowledgement of hidden login mitigation
 		}
+		if ( get_option( 'alma_fix_firewall_detect' ) ) {
+			// Acknowledgement of firewall mitigation
+		}
 	}
 
 	public function mitigate_login_attacks() {
