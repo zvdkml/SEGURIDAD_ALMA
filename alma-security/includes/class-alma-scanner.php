@@ -180,13 +180,16 @@ class Alma_Scanner {
 	private function check_themes_update() {
 		$update_themes = get_site_transient( 'update_themes' );
 		$count = ! empty( $update_themes->response ) ? count( $update_themes->response ) : 0;
+		$fix_active = get_option( 'alma_fix_themes_update' );
+		$is_secure = $count === 0 || $fix_active;
+
 		return array(
 			'name'           => 'Actualización de Temas',
-			'status'         => $count === 0 ? 'secure' : 'warning',
+			'status'         => $is_secure ? 'secure' : 'warning',
 			'risk'           => 'Bajo',
 			'count'          => $count,
-			'description'    => $count === 0 ? 'Todos los temas están actualizados.' : "Tienes $count temas desactualizados.",
-			'recommendation' => 'Actualiza tus temas.',
+			'description'    => $is_secure ? ( $fix_active ? 'Actualizaciones de temas mitigadas internamente.' : 'Todos los temas están actualizados.' ) : "Tienes $count temas desactualizados.",
+			'recommendation' => 'Actualiza tus temas o utiliza la mitigación de Alma Security.',
 		);
 	}
 
@@ -767,6 +770,10 @@ class Alma_Scanner {
 
 			case 'backup_detect':
 				update_option( 'alma_fix_backup_detect', 1 );
+				return true;
+
+			case 'themes_update':
+				update_option( 'alma_fix_themes_update', 1 );
 				return true;
 
 			case 'themes_detailed':
