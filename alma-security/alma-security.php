@@ -86,6 +86,18 @@ class Seguridad_Alma {
 		if ( get_option( 'alma_fix_firewall_detect' ) ) {
 			// Acknowledgement of firewall mitigation
 		}
+		if ( get_option( 'alma_fix_security_headers' ) ) {
+			add_action( 'send_headers', array( $this, 'send_security_headers' ) );
+		}
+	}
+
+	public function send_security_headers() {
+		if ( ! headers_sent() ) {
+			header( 'X-Content-Type-Options: nosniff' );
+			header( 'X-Frame-Options: SAMEORIGIN' );
+			header( 'X-XSS-Protection: 1; mode=block' );
+			header( 'Referrer-Policy: strict-origin-when-cross-origin' );
+		}
 	}
 
 	public function mitigate_login_attacks() {
@@ -117,15 +129,17 @@ class Seguridad_Alma {
 		}
 		$relative_path = '/' . ltrim( untrailingslashit( (string) $relative_path ), '/' );
 
-		if ( $relative_path === '/security/fix' || $relative_path === '/security/issues' ) {
+		if ( $relative_path === '/security' || $relative_path === '/security/fix' || $relative_path === '/security/issues' ) {
 			if ( ! current_user_can( 'manage_options' ) ) {
 				wp_die( 'Acceso denegado. No tienes permisos para ver esta página.' );
 			}
 
 			if ( $relative_path === '/security/fix' ) {
 				include ALMA_SECURITY_PATH . 'templates/fix.php';
-			} else {
+			} elseif ( $relative_path === '/security/issues' ) {
 				include ALMA_SECURITY_PATH . 'templates/issues.php';
+			} else {
+				include ALMA_SECURITY_PATH . 'templates/dashboard.php';
 			}
 			exit;
 		}

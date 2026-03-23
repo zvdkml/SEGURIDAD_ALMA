@@ -1,4 +1,21 @@
-<div class="wrap alma-security-wrap pr-4 font-sans text-gray-900 bg-gray-50 min-h-screen">
+<!DOCTYPE html>
+<html <?php language_attributes(); ?>>
+<head>
+    <meta charset="<?php bloginfo( 'charset' ); ?>">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Dashboard - Alma Security</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="<?php echo includes_url('css/dashicons.min.css'); ?>">
+    <style>
+        .animate-bounce-slow { animation: bounce 3s infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(-5%); animation-timing-function: cubic-bezier(0.8, 0, 1, 1); } 50% { transform: translateY(0); animation-timing-function: cubic-bezier(0, 0, 0.2, 1); } }
+        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    </style>
+</head>
+<body class="bg-gray-50 antialiased text-gray-900 font-sans">
+<div class="wrap alma-security-wrap p-10 min-h-screen">
     <!-- Alerts System -->
     <div id="alma-alerts-container" class="pt-10 space-y-4">
         <!-- Dynamic Alerts will appear here -->
@@ -316,3 +333,30 @@
         </div>
     </div>
 </div>
+
+<script src="<?php echo ALMA_SECURITY_URL . 'assets/js/alma-admin.js'; ?>"></script>
+<script>
+    // Initialize localized data for standalone page
+    const alma_ajax = <?php echo json_encode( array(
+        'ajax_url'     => admin_url( 'admin-ajax.php' ),
+        'nonce'        => wp_create_nonce( 'alma_security_nonce' ),
+        'latest_scan'  => (new Alma_History())->get_latest_scan(),
+        'history'      => (new Alma_History())->get_history(),
+        'scan_index'   => isset( $_GET['scan_index'] ) ? intval( $_GET['scan_index'] ) : -1,
+        'db_results'   => array_reduce((new Alma_DB())->get_all_results(), function($carry, $item) {
+            $carry[$item['check_id']] = [
+                'name' => $item['check_name'],
+                'status' => $item['status'],
+                'description' => $item['result'],
+                'recommendation' => $item['recommendation'],
+                'risk_level' => $item['risk_level'],
+                'last_scan_at' => $item['last_scan_at']
+            ];
+            return $carry;
+        }, []),
+        'user_role'    => (new Alma_Auth())->get_current_user_role(),
+        'score_history'=> (new Alma_DB())->get_score_history(),
+    ) ); ?>;
+</script>
+</body>
+</html>
