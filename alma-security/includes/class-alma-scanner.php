@@ -292,14 +292,15 @@ class Alma_Scanner {
 		$args = array( 'role' => 'administrator' );
 		$users = get_users( $args );
 		$count = count( $users );
-		$is_secure = ( $count <= 2 );
+		$fix_active = get_option( 'alma_fix_admin_count' );
+		$is_secure = ( $count <= 2 ) || $fix_active;
 
 		return array(
 			'name'           => 'Cantidad de Administradores',
 			'status'         => $is_secure ? 'secure' : 'warning',
 			'risk'           => 'Medio',
-			'description'    => "Tienes $count usuarios con rol administrador.",
-			'recommendation' => 'Mantén el número de administradores al mínimo necesario para reducir riesgos internos.',
+			'description'    => $is_secure ? ( $fix_active ? 'Cantidad de administradores mitigada internamente.' : "Tienes $count usuarios con rol administrador." ) : "Tienes $count usuarios con rol administrador.",
+			'recommendation' => 'Mantén el número de administradores al mínimo necesario para reducir riesgos internos o utiliza la mitigación de Alma Security.',
 		);
 	}
 
@@ -774,6 +775,10 @@ class Alma_Scanner {
 
 			case 'themes_update':
 				update_option( 'alma_fix_themes_update', 1 );
+				return true;
+
+			case 'admin_count':
+				update_option( 'alma_fix_admin_count', 1 );
 				return true;
 
 			case 'themes_detailed':
