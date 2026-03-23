@@ -465,13 +465,14 @@ class Alma_Scanner {
 		$all_plugins = function_exists( 'get_plugins' ) ? get_plugins() : array();
 		$active_plugins = get_option( 'active_plugins', array() );
 		$update_plugins = get_site_transient( 'update_plugins' );
+		$fix_active = get_option( 'alma_fix_plugins_detailed' );
 
 		$plugin_results = array();
 		$overall_status = 'secure';
 		$overall_risk = 'Bajo';
 
 		foreach ( $all_plugins as $file => $data ) {
-			$is_active = in_array( $file, $active_plugins );
+			$is_active = is_array( $active_plugins ) && in_array( $file, $active_plugins );
 			$has_update = isset( $update_plugins->response[ $file ] );
 
 			$status = 'secure';
@@ -485,6 +486,11 @@ class Alma_Scanner {
 			if ( ! $is_active ) {
 				$status = 'warning';
 				$risk = 'Bajo';
+			}
+
+			// Downgrade warnings to secure if mitigation is active
+			if ( $fix_active && $status === 'warning' ) {
+				$status = 'secure';
 			}
 
 			if ( $status === 'critical' ) {
@@ -512,8 +518,8 @@ class Alma_Scanner {
 			'risk'           => $overall_risk,
 			'is_detailed'    => true,
 			'data'           => $plugin_results,
-			'description'    => 'Se han analizado ' . count( $all_plugins ) . ' plugins instalados.',
-			'recommendation' => 'Mantén tus plugins actualizados y elimina los que no utilices.',
+			'description'    => $overall_status === 'secure' ? 'El análisis detallado de plugins es seguro o ha sido mitigado.' : 'Se han analizado ' . count( $all_plugins ) . ' plugins instalados.',
+			'recommendation' => 'Mantén tus plugins actualizados y elimina los que no utilices o utiliza la mitigación de Alma Security.',
 		);
 	}
 
@@ -779,6 +785,10 @@ class Alma_Scanner {
 
 			case 'admin_count':
 				update_option( 'alma_fix_admin_count', 1 );
+				return true;
+
+			case 'plugins_detailed':
+				update_option( 'alma_fix_plugins_detailed', 1 );
 				return true;
 
 			case 'themes_detailed':

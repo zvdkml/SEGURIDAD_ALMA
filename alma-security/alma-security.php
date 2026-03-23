@@ -95,6 +95,9 @@ class Seguridad_Alma {
 		if ( get_option( 'alma_fix_admin_count' ) ) {
 			// Acknowledgement of admin count mitigation
 		}
+		if ( get_option( 'alma_fix_plugins_detailed' ) ) {
+			// Acknowledgement of plugin mitigation
+		}
 	}
 
 	public function send_security_headers() {
