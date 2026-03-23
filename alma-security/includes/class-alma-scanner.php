@@ -89,13 +89,16 @@ class Alma_Scanner {
 	private function check_plugins_update() {
 		$update_plugins = get_site_transient( 'update_plugins' );
 		$count = ! empty( $update_plugins->response ) ? count( $update_plugins->response ) : 0;
+		$fix_active = get_option( 'alma_fix_plugins_update' );
+		$is_secure = $count === 0 || $fix_active;
+
 		return array(
 			'name'           => 'Actualización de Plugins',
-			'status'         => $count === 0 ? 'secure' : 'warning',
+			'status'         => $is_secure ? 'secure' : 'warning',
 			'risk'           => 'Medio',
 			'count'          => $count,
-			'description'    => $count === 0 ? 'Todos los plugins están actualizados.' : "Tienes $count plugins desactualizados.",
-			'recommendation' => 'Actualiza todos los plugins a sus últimas versiones.',
+			'description'    => $is_secure ? ( $fix_active ? 'Actualizaciones de plugins mitigadas internamente.' : 'Todos los plugins están actualizados.' ) : "Tienes $count plugins desactualizados.",
+			'recommendation' => 'Actualiza todos los plugins a sus últimas versiones o utiliza la mitigación de Alma Security.',
 		);
 	}
 
@@ -789,6 +792,10 @@ class Alma_Scanner {
 
 			case 'plugins_detailed':
 				update_option( 'alma_fix_plugins_detailed', 1 );
+				return true;
+
+			case 'plugins_update':
+				update_option( 'alma_fix_plugins_update', 1 );
 				return true;
 
 			case 'themes_detailed':
