@@ -89,6 +89,9 @@ class Seguridad_Alma {
 		if ( get_option( 'alma_fix_security_headers' ) ) {
 			add_action( 'send_headers', array( $this, 'send_security_headers' ) );
 		}
+		if ( get_option( 'alma_fix_backup_detect' ) ) {
+			// Acknowledgement of backup mitigation
+		}
 	}
 
 	public function send_security_headers() {

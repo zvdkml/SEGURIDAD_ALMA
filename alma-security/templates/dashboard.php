@@ -1,3 +1,4 @@
+<?php if ( ! is_admin() ) : ?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>
 <head>
@@ -15,6 +16,7 @@
     </style>
 </head>
 <body class="bg-gray-50 antialiased text-gray-900 font-sans">
+<?php endif; ?>
 <div class="wrap alma-security-wrap p-10 min-h-screen">
     <!-- Alerts System -->
     <div id="alma-alerts-container" class="pt-10 space-y-4">
@@ -358,5 +360,7 @@
         'score_history'=> (new Alma_DB())->get_score_history(),
     ) ); ?>;
 </script>
+<?php if ( ! is_admin() ) : ?>
 </body>
 </html>
+<?php endif; ?>

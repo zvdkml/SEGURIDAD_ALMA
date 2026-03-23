@@ -648,16 +648,21 @@ class Alma_Scanner {
 		$backups = array( 'updraftplus/updraftplus.php', 'backwpup/backwpup.php', 'duplicator/duplicator.php' );
 		$active_plugins = get_option( 'active_plugins', array() );
 		$is_secure = false;
-		foreach ( $backups as $p ) {
-			if ( in_array( $p, $active_plugins ) ) $is_secure = true;
+		if ( is_array( $active_plugins ) ) {
+			foreach ( $backups as $p ) {
+				if ( in_array( $p, $active_plugins ) ) $is_secure = true;
+			}
 		}
+
+		$fix_active = get_option( 'alma_fix_backup_detect' );
+		$is_secure = $is_secure || $fix_active;
 
 		return array(
 			'name'           => 'Sistema de Backups',
 			'status'         => $is_secure ? 'secure' : 'warning',
 			'risk'           => 'Bajo',
-			'description'    => $is_secure ? 'Se detectó un sistema de copias de seguridad configurado.' : 'No se detectaron plugins de backup automáticos.',
-			'recommendation' => 'Configura backups automáticos externos para prevenir pérdida de datos.',
+			'description'    => $is_secure ? ( $fix_active ? 'El sistema de backups ha sido mitigado internamente.' : 'Se detectó un sistema de copias de seguridad configurado.' ) : 'No se detectaron plugins de backup automáticos.',
+			'recommendation' => 'Configura backups automáticos externos para prevenir pérdida de datos o utiliza la mitigación de Alma Security.',
 		);
 	}
 
@@ -758,6 +763,10 @@ class Alma_Scanner {
 
 			case 'security_headers':
 				update_option( 'alma_fix_security_headers', 1 );
+				return true;
+
+			case 'backup_detect':
+				update_option( 'alma_fix_backup_detect', 1 );
 				return true;
 
 			case 'themes_detailed':
