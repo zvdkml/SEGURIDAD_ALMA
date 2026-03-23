@@ -86,9 +86,9 @@
             <div class="mb-6 flex justify-between items-start">
                 <h3 class="text-sm font-black text-gray-900 uppercase tracking-tight">Hallazgos</h3>
                 <div class="flex flex-col gap-1 text-gray-400 font-bold text-[9px] uppercase">
-                    <div class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-1.5"></span> Seguro</div>
-                    <div class="flex items-center"><span class="w-2 h-2 bg-orange-500 rounded-full mr-1.5"></span> Advertencia</div>
-                    <div class="flex items-center"><span class="w-2 h-2 bg-red-500 rounded-full mr-1.5"></span> Crítico</div>
+                    <div class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-1.5" style="background-color: #10B981;"></span> Seguro</div>
+                    <div class="flex items-center"><span class="w-2 h-2 bg-orange-500 rounded-full mr-1.5" style="background-color: #F59E0B;"></span> Advertencia</div>
+                    <div class="flex items-center"><span class="w-2 h-2 bg-red-500 rounded-full mr-1.5" style="background-color: #EF4444;"></span> Crítico</div>
                 </div>
             </div>
             <div class="relative flex-grow h-48 min-h-[12rem] w-full">

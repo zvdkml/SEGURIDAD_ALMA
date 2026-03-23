@@ -155,9 +155,9 @@
         distributionChart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: ['Bajo', 'Medio', 'Crítico'],
+                labels: ['Seguro', 'Advertencia', 'Crítico'],
                 datasets: [{
-                    data: [counts.bajo || 0, counts.medio || 0, counts.critico || 0],
+                    data: [counts.secure || 0, counts.warning || 0, counts.critical || 0],
                     backgroundColor: ['#10B981', '#F59E0B', '#EF4444'],
                     borderRadius: 8,
                     barPercentage: 0.6,

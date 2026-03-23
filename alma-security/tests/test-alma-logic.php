@@ -147,7 +147,7 @@ if ($results['score'] > 0) {
 }
 
 if (isset($results['counts'])) {
-    echo "Vulnerability Counts: Critico=" . $results['counts']['critico'] . ", Medio=" . $results['counts']['medio'] . ", Bajo=" . $results['counts']['bajo'] . "\n";
+    echo "Vulnerability Counts: Critical=" . $results['counts']['critical'] . ", Warning=" . $results['counts']['warning'] . ", Secure=" . $results['counts']['secure'] . "\n";
 } else {
     echo "FAILED: Vulnerability counts missing.\n";
     exit(1);

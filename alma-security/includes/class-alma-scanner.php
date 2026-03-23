@@ -821,24 +821,14 @@ class Alma_Scanner {
 
 	private function get_vulnerability_counts( $results ) {
 		$counts = array(
-			'critico' => 0,
-			'medio'   => 0,
-			'bajo'    => 0,
+			'secure'   => 0,
+			'warning'  => 0,
+			'critical' => 0,
 		);
 
 		foreach ( $results as $check ) {
-			if ( $check['status'] === 'secure' ) continue;
-
-			switch ( $check['risk'] ) {
-				case 'Crítico':
-					$counts['critico']++;
-					break;
-				case 'Medio':
-					$counts['medio']++;
-					break;
-				case 'Bajo':
-					$counts['bajo']++;
-					break;
+			if ( isset( $counts[ $check['status'] ] ) ) {
+				$counts[ $check['status'] ]++;
 			}
 		}
 
