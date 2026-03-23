@@ -90,14 +90,20 @@
     });
 
     function applyRoleRestrictions(role) {
-        if (role === 'viewer') {
+        const caps = alma_ajax.user_caps || {};
+
+        if ( ! caps.can_scan ) {
             $('#run-scan-btn, .run-specific-scan-btn, .run-individual-scan-btn').remove();
-        } else if (role === 'user') {
-            $('#run-scan-btn, .run-specific-scan-btn').addClass('opacity-50 pointer-events-none').attr('title', 'No tienes permisos para escaneos globales.');
         }
 
-        if (role === 'admin') {
+        if ( ! caps.can_fix ) {
+            $('.fix-check-btn').remove();
+        }
+
+        if ( caps.can_admin ) {
             $('#delete-data-btn').removeClass('hidden');
+        } else {
+            $('#delete-data-btn').remove();
         }
 
         // Check if we are in frontend

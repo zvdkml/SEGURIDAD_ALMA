@@ -119,8 +119,30 @@ class Seguridad_Alma {
 
 	public function activate() {
 		Alma_DB::create_tables();
+		$this->add_capabilities();
 		if ( class_exists( 'Alma_Cron' ) ) {
 			Alma_Cron::activate();
+		}
+	}
+
+	private function add_capabilities() {
+		$admin = get_role( 'administrator' );
+		if ( $admin ) {
+			$admin->add_cap( 'alma_security_view' );
+			$admin->add_cap( 'alma_security_scan' );
+			$admin->add_cap( 'alma_security_fix' );
+			$admin->add_cap( 'alma_security_admin' );
+		}
+
+		$editor = get_role( 'editor' );
+		if ( $editor ) {
+			$editor->add_cap( 'alma_security_view' );
+			$editor->add_cap( 'alma_security_scan' );
+		}
+
+		$author = get_role( 'author' );
+		if ( $author ) {
+			$author->add_cap( 'alma_security_view' );
 		}
 	}
 
@@ -142,7 +164,7 @@ class Seguridad_Alma {
 		$relative_path = '/' . ltrim( untrailingslashit( (string) $relative_path ), '/' );
 
 		if ( $relative_path === '/security' || $relative_path === '/security/fix' || $relative_path === '/security/issues' ) {
-			if ( ! current_user_can( 'manage_options' ) ) {
+			if ( ! current_user_can( 'alma_security_view' ) && ! current_user_can( 'alma_security_admin' ) ) {
 				wp_die( 'Acceso denegado. No tienes permisos para ver esta página.' );
 			}
 

@@ -28,7 +28,7 @@ class Alma_Admin {
 		add_menu_page(
 			'Security Monitor',
 			'Security Monitor',
-			'manage_options',
+			'alma_security_view',
 			'alma-security',
 			array( $this, 'render_dashboard' ),
 			'dashicons-shield',
@@ -39,7 +39,7 @@ class Alma_Admin {
 			'alma-security',
 			'Security Dashboard',
 			'Security Dashboard',
-			'manage_options',
+			'alma_security_view',
 			'alma-security',
 			array( $this, 'render_dashboard' )
 		);
@@ -48,7 +48,7 @@ class Alma_Admin {
 			'alma-security',
 			'Historial',
 			'Historial',
-			'manage_options',
+			'alma_security_view',
 			'alma-history',
 			array( $this, 'render_history' )
 		);
@@ -57,7 +57,7 @@ class Alma_Admin {
 			'alma-security',
 			'Configuración',
 			'Configuración',
-			'manage_options',
+			'alma_security_admin',
 			'alma-settings',
 			array( $this, 'render_settings' )
 		);
@@ -105,6 +105,12 @@ class Alma_Admin {
 		$auth = new Alma_Auth();
 		$current_role = $auth->get_current_user_role();
 
+		$user_caps = array(
+			'can_scan' => $auth->can( 'individual_scan' ),
+			'can_fix'  => $auth->can( 'fix_issues' ),
+			'can_admin' => $auth->can( 'manage_users' ),
+		);
+
 		wp_localize_script( 'alma-admin-js', 'alma_ajax', array(
 			'ajax_url'     => admin_url( 'admin-ajax.php' ),
 			'nonce'        => wp_create_nonce( 'alma_security_nonce' ),
@@ -113,6 +119,7 @@ class Alma_Admin {
 			'scan_index'   => $scan_index,
 			'db_results'   => $persisted_results,
 			'user_role'    => $current_role,
+			'user_caps'    => $user_caps,
 			'score_history'=> $score_history,
 		) );
 	}
@@ -223,7 +230,7 @@ class Alma_Admin {
 		error_log( "[Alma Security] Iniciando ajax_fix_check" );
 		check_ajax_referer( 'alma_security_nonce', 'nonce' );
 		$auth = new Alma_Auth();
-		if ( ! $auth->can( 'individual_scan' ) ) {
+		if ( ! $auth->can( 'fix_issues' ) ) {
 			error_log( "[Alma Security] Error: Permisos insuficientes" );
 			wp_send_json_error( 'No tienes permisos para realizar reparaciones.' );
 		}

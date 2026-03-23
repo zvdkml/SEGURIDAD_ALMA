@@ -116,9 +116,13 @@ $has_issues = ! empty( $issues_by_module );
                                                 </span>
                                             </td>
                                             <td class="px-6 py-6 text-right">
+                                                <?php if ( current_user_can( 'alma_security_fix' ) || current_user_can( 'alma_security_admin' ) ) : ?>
                                                 <button data-check="<?php echo esc_attr($row['check_id']); ?>" class="reparar-tarea-btn bg-gray-900 hover:bg-blue-600 text-white font-black py-2.5 px-6 rounded-xl transition-all text-[10px] uppercase tracking-widest shadow-md active:scale-95">
                                                     Reparar tarea
                                                 </button>
+                                                <?php else : ?>
+                                                <span class="text-[9px] text-gray-400 font-bold uppercase">Sin permisos</span>
+                                                <?php endif; ?>
                                             </td>
                                         </tr>
                                         <?php endforeach; ?>

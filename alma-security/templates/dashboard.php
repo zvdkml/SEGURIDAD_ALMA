@@ -30,18 +30,23 @@
             <p class="text-gray-500 mt-3 text-lg font-medium">Panel profesional de monitorización y auditoría de seguridad.</p>
         </div>
         <div class="flex items-center gap-4">
+            <?php if ( current_user_can( 'alma_security_admin' ) ) : ?>
             <button id="delete-data-btn" class="hidden group flex items-center bg-white border-2 border-red-100 hover:bg-red-50 text-red-600 font-black py-4 px-8 rounded-2xl transition-all duration-300 transform hover:-translate-y-1">
                 <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
                 BORRAR DATOS
             </button>
+            <?php endif; ?>
+
+            <?php if ( current_user_can( 'alma_security_scan' ) || current_user_can( 'alma_security_admin' ) ) : ?>
             <button id="run-scan-btn" class="group flex items-center bg-gray-900 hover:bg-blue-600 text-white font-black py-4 px-10 rounded-2xl shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
                 <svg class="h-6 w-6 mr-3 group-hover:rotate-180 transition-transform duration-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
                 ESCANEAR TODO EL SITIO
             </button>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -209,9 +214,11 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
+                    <?php if ( current_user_can( 'alma_security_scan' ) || current_user_can( 'alma_security_admin' ) ) : ?>
                     <button data-type="<?php echo $key; ?>" class="run-specific-scan-btn bg-gray-900 hover:bg-blue-600 text-white font-black py-4 px-8 rounded-2xl transition-all shadow-xl shadow-gray-200 hover:shadow-blue-200 uppercase text-[10px] tracking-widest">
                         ESCANEAR
                     </button>
+                    <?php endif; ?>
                     <button class="toggle-section-btn p-3 bg-gray-100 hover:bg-gray-200 rounded-2xl transition-all duration-300 group/toggle" data-target="section-<?php echo $key; ?>">
                         <svg class="h-5 w-5 text-gray-600 transform transition-transform duration-300 group-[.is-active]/toggle:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7" />
@@ -268,12 +275,16 @@
                                             <button data-check="<?php echo $check_id; ?>" class="view-check-history-btn p-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-500 hover:text-blue-600 rounded-xl transition-all shadow-sm hover:shadow-md flex items-center justify-center" title="Ver detalles">
                                                 <span class="dashicons dashicons-search text-sm"></span>
                                             </button>
+                                            <?php if ( current_user_can( 'alma_security_scan' ) || current_user_can( 'alma_security_admin' ) ) : ?>
                                             <button data-check="<?php echo $check_id; ?>" data-section="<?php echo $key; ?>" class="run-individual-scan-btn bg-gray-900 hover:bg-blue-600 text-white font-black py-2.5 px-6 rounded-xl transition-all shadow-lg shadow-gray-200 hover:shadow-blue-200 text-[10px] uppercase tracking-widest whitespace-nowrap active:scale-95">
                                                 Scan
                                             </button>
+                                            <?php endif; ?>
+                                            <?php if ( current_user_can( 'alma_security_fix' ) || current_user_can( 'alma_security_admin' ) ) : ?>
                                             <a href="<?php echo home_url('/security/fix?check=' . $check_id); ?>" class="fix-check-btn <?php echo $show_fix ? '' : 'hidden'; ?> bg-red-600 hover:bg-red-700 text-white font-black py-2.5 px-6 rounded-xl transition-all shadow-lg shadow-red-200 hover:shadow-red-300 text-[10px] uppercase tracking-widest whitespace-nowrap active:scale-95">
                                                 Solucionar
                                             </a>
+                                            <?php endif; ?>
                                         </div>
                                     </td>
                                 </tr>

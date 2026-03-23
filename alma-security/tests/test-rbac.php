@@ -31,7 +31,17 @@ function wp_get_current_user() {
     $u->user_login = $current_mock_user;
     return $u;
 }
-function current_user_can($cap) { return false; }
+function current_user_can($cap) {
+    global $current_mock_user;
+    if ($current_mock_user === 'test_admin') return true;
+    if ($current_mock_user === 'test_user') {
+        return in_array($cap, array('alma_security_view', 'alma_security_scan'));
+    }
+    if ($current_mock_user === 'test_viewer') {
+        return in_array($cap, array('alma_security_view'));
+    }
+    return false;
+}
 
 require_once __DIR__ . '/../includes/class-alma-auth.php';
 

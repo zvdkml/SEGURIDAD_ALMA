@@ -70,20 +70,23 @@ class Alma_Auth {
 	}
 
 	public function can( $action ) {
+		// Priority 1: Check internal Alma override table
 		$role = $this->get_current_user_role();
+		if ( $role === 'admin' ) return true;
 
+		// Priority 2: Use WordPress native capabilities
 		switch ( $action ) {
 			case 'full_scan':
+				return current_user_can( 'alma_security_scan' ) || current_user_can( 'alma_security_admin' );
 			case 'delete_data':
 			case 'manage_users':
-				return ( $role === 'admin' );
-
+				return current_user_can( 'alma_security_admin' );
 			case 'individual_scan':
-				return ( $role === 'admin' || $role === 'user' );
-
+				return current_user_can( 'alma_security_scan' ) || current_user_can( 'alma_security_admin' );
+			case 'fix_issues':
+				return current_user_can( 'alma_security_fix' ) || current_user_can( 'alma_security_admin' );
 			case 'view_results':
-				return ( $role === 'admin' || $role === 'user' || $role === 'viewer' );
-
+				return current_user_can( 'alma_security_view' ) || current_user_can( 'alma_security_admin' );
 			default:
 				return false;
 		}
