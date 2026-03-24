@@ -754,10 +754,27 @@ class Alma_Scanner {
 			$status = 'warning';
 			$description = 'Aviso: ' . $vulnerabilities->get_error_message();
 		} elseif ( ! empty( $vulnerabilities ) && is_array( $vulnerabilities ) ) {
-			$status = 'warning';
-			$risk = 'Alto';
-			$data = $vulnerabilities;
-			$description = 'Se han detectado vulnerabilidades conocidas en algunos de tus plugins instalados.';
+			// Filter only plugins
+			$plugin_vulnerabilities = array_filter( $vulnerabilities, function( $v ) {
+				return isset( $v['type'] ) && $v['type'] === 'plugin';
+			} );
+
+			// Sort by most recent (descending)
+			usort( $plugin_vulnerabilities, function( $a, $b ) {
+				$date_a = isset( $a['date'] ) ? strtotime( $a['date'] ) : 0;
+				$date_b = isset( $b['date'] ) ? strtotime( $b['date'] ) : 0;
+				return $date_b - $date_a;
+			} );
+
+			// Limit to maximum 5 results
+			$plugin_vulnerabilities = array_slice( $plugin_vulnerabilities, 0, 5 );
+
+			if ( ! empty( $plugin_vulnerabilities ) ) {
+				$status = 'warning';
+				$risk = 'Alto';
+				$data = $plugin_vulnerabilities;
+				$description = 'Se han detectado vulnerabilidades conocidas en algunos de tus plugins instalados.';
+			}
 		}
 
 		return array(

@@ -381,10 +381,11 @@
     </div>
 </div>
 
+<?php if ( ! is_admin() ) : ?>
 <script src="<?php echo ALMA_SECURITY_URL . 'assets/js/alma-admin.js'; ?>"></script>
 <script>
     // Initialize localized data for standalone page
-    const alma_ajax = <?php echo json_encode( array(
+    var alma_ajax = <?php echo json_encode( array(
         'ajax_url'     => admin_url( 'admin-ajax.php' ),
         'nonce'        => wp_create_nonce( 'alma_security_nonce' ),
         'latest_scan'  => (new Alma_History())->get_latest_scan(),
@@ -405,6 +406,7 @@
         'score_history'=> (new Alma_DB())->get_score_history(),
     ) ); ?>;
 </script>
+<?php endif; ?>
 <?php if ( ! is_admin() ) : ?>
 </body>
 </html>
