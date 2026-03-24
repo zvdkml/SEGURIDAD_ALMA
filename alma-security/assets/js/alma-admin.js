@@ -322,14 +322,19 @@
 
     function renderVulnerabilitiesList(vulnerabilities) {
         if (!Array.isArray(vulnerabilities)) return '';
-        let html = '<div class="space-y-2 plugin-vulnerabilities-list">';
+        let html = '<div class="grid grid-cols-1 gap-1.5 plugin-vulnerabilities-list">';
         vulnerabilities.forEach(v => {
+            const risk = (v.risk || '').toLowerCase();
+            let color = 'red';
+            if (risk === 'medio' || risk === 'medium') color = 'yellow';
+            else if (risk === 'bajo' || risk === 'low') color = 'green';
+
             html += `
-                <div class="flex items-center text-[10px] bg-red-50/50 p-2 rounded-xl border border-red-100/50">
-                    <span class="font-black text-red-700 mr-2 uppercase tracking-tighter">${v.name}</span>
-                    <span class="w-1 h-1 bg-red-300 rounded-full mr-2"></span>
-                    <span class="font-bold text-red-600 mr-2">${v.risk}</span>
-                    <span class="text-red-500 italic">${v.issue}</span>
+                <div class="flex items-center text-[9px] bg-${color}-50/50 p-1.5 rounded-lg border border-${color}-100/50 shadow-sm transition-all hover:bg-${color}-100/30">
+                    <span class="font-black text-${color}-700 mr-2 uppercase tracking-tighter w-16 truncate" title="${v.name}">${v.name}</span>
+                    <span class="w-1 h-1 bg-${color}-300 rounded-full mr-2 shrink-0"></span>
+                    <span class="font-bold text-${color}-600 mr-2 shrink-0">${v.risk}</span>
+                    <span class="text-${color}-500 italic truncate" title="${v.issue}">${v.issue}</span>
                 </div>
             `;
         });
