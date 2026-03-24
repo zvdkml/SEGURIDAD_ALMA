@@ -21,6 +21,7 @@ class Alma_DB {
 			recommendation text NOT NULL,
 			risk_level varchar(50) NOT NULL,
 			last_scan_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+			is_vulnerabilities tinyint(1) DEFAULT 0 NOT NULL,
 			PRIMARY KEY  (id),
 			UNIQUE KEY check_id (check_id)
 		) $charset_collate;";
@@ -76,18 +77,24 @@ class Alma_DB {
 		$table_name = $wpdb->prefix . 'alma_scans';
 		$history_table = $wpdb->prefix . 'alma_scan_history';
 
+		$result_content = $data['description'];
+		if ( isset( $data['is_vulnerabilities'] ) && $data['is_vulnerabilities'] && isset( $data['data'] ) ) {
+			$result_content = json_encode( $data['data'] );
+		}
+
 		$wpdb->replace(
 			$table_name,
 			array(
 				'check_id'       => $id,
 				'check_name'     => $data['name'],
 				'status'         => $data['status'],
-				'result'         => $data['description'],
+				'result'         => $result_content,
 				'recommendation' => $data['recommendation'],
 				'risk_level'     => isset($data['risk']) ? $data['risk'] : 'Bajo',
 				'last_scan_at'   => current_time( 'mysql' ),
+				'is_vulnerabilities' => isset($data['is_vulnerabilities']) ? 1 : 0,
 			),
-			array( '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
+			array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d' )
 		);
 
 		// Log into History

@@ -325,7 +325,24 @@
         if (!row.length) return;
 
         row.find('.check-name').text(data.name);
-        row.find('.check-description').text(data.description).removeClass('italic');
+
+        if (checkId === 'plugin_vulnerabilities' && data.is_vulnerabilities && data.data) {
+            let html = '<div class="space-y-2 plugin-vulnerabilities-list">';
+            data.data.forEach(v => {
+                html += `
+                    <div class="flex items-center text-[10px] bg-red-50/50 p-2 rounded-xl border border-red-100/50">
+                        <span class="font-black text-red-700 mr-2 uppercase tracking-tighter">${v.name}</span>
+                        <span class="w-1 h-1 bg-red-300 rounded-full mr-2"></span>
+                        <span class="font-bold text-red-600 mr-2">${v.risk}</span>
+                        <span class="text-red-500 italic">${v.issue}</span>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            row.find('.check-description').html(html).removeClass('italic');
+        } else {
+            row.find('.check-description').text(data.description).removeClass('italic');
+        }
 
         const badge = row.find('.check-status-badge');
         badge.removeClass('bg-gray-100 text-gray-400 bg-gray-200 text-gray-500 bg-green-100 text-green-800 bg-yellow-100 text-yellow-800 bg-red-100 text-red-800 shadow-sm border border-gray-200/50');

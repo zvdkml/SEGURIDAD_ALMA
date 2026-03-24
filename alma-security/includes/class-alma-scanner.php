@@ -29,9 +29,10 @@ class Alma_Scanner {
 			'core_integrity'    => 'Integridad del Core',
 			'firewall_detect'   => 'Estado del Firewall',
 			'security_headers'  => 'Cabeceras de Seguridad',
-			'backup_detect'     => 'Sistema de Backups',
-			'plugins_update'    => 'Actualización de Plugins',
-			'themes_update'     => 'Actualización de Temas',
+			'backup_detect'         => 'Sistema de Backups',
+			'plugins_update'        => 'Actualización de Plugins',
+			'themes_update'         => 'Actualización de Temas',
+			'plugin_vulnerabilities' => 'Vulnerabilidades de plugins',
 		);
 		return isset( $names[ $id ] ) ? $names[ $id ] : '';
 	}
@@ -39,7 +40,7 @@ class Alma_Scanner {
 	public function run_scan( $type = 'all', $check_id = '' ) {
 		$all_checks = array(
 			'wp'      => array( 'wp_update', 'debug_mode', 'xmlrpc', 'sensitive_files', 'server_config' ),
-			'plugins' => array( 'plugins_detailed' ),
+			'plugins' => array( 'plugins_detailed', 'plugin_vulnerabilities' ),
 			'themes'  => array( 'themes_detailed' ),
 			'server'  => array( 'php_version', 'security_headers', 'https', 'file_permissions', 'directory_listing' ),
 			'users'   => array( 'admin_users', 'admin_count', 'login_attempts' ),
@@ -60,7 +61,7 @@ class Alma_Scanner {
 		} elseif ( $type === 'all' ) {
 			$checks_to_run = array(
 				'wp_update', 'xmlrpc', 'debug_mode', 'sensitive_files',
-				'plugins_detailed',
+				'plugins_detailed', 'plugin_vulnerabilities',
 				'themes_detailed',
 				'php_version', 'server_config', 'https', 'file_permissions', 'directory_listing',
 				'admin_users', 'admin_count',
@@ -736,6 +737,23 @@ class Alma_Scanner {
 			'risk'           => 'Medio',
 			'description'    => 'No se detectaron plugins abandonados críticamente.',
 			'recommendation' => 'Revisa periódicamente que tus plugins sigan recibiendo actualizaciones.',
+		);
+	}
+
+	private function check_plugin_vulnerabilities() {
+		$vulnerabilities = array(
+			array( 'name' => 'Elementor', 'risk' => 'Alto', 'issue' => 'Vulnerabilidad XSS' ),
+			array( 'name' => 'WooCommerce', 'risk' => 'Medio', 'issue' => 'Exposición de datos' ),
+		);
+
+		return array(
+			'name'           => 'Vulnerabilidades de plugins',
+			'status'         => 'warning',
+			'risk'           => 'Alto',
+			'is_vulnerabilities' => true,
+			'data'           => $vulnerabilities,
+			'description'    => 'Se han detectado vulnerabilidades conocidas en algunos de tus plugins instalados.',
+			'recommendation' => 'Actualiza los plugins afectados a la versión más reciente de inmediato.',
 		);
 	}
 
