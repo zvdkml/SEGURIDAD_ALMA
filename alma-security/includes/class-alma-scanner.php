@@ -741,18 +741,32 @@ class Alma_Scanner {
 	}
 
 	private function check_plugin_vulnerabilities() {
-		$vulnerabilities = array(
-			array( 'name' => 'Elementor', 'risk' => 'Alto', 'issue' => 'Vulnerabilidad XSS' ),
-			array( 'name' => 'WooCommerce', 'risk' => 'Medio', 'issue' => 'Exposición de datos' ),
-		);
+		$api = new Alma_API();
+		$vulnerabilities = $api->get_plugin_vulnerabilities();
+
+		$status = 'secure';
+		$risk = 'Bajo';
+		$description = 'No se han detectado vulnerabilidades conocidas en tus plugins instalados.';
+		$data = array();
+
+		if ( is_wp_error( $vulnerabilities ) ) {
+			// If API is not configured or fails, we report it as a warning so the user knows
+			$status = 'warning';
+			$description = 'Aviso: ' . $vulnerabilities->get_error_message();
+		} elseif ( ! empty( $vulnerabilities ) && is_array( $vulnerabilities ) ) {
+			$status = 'warning';
+			$risk = 'Alto';
+			$data = $vulnerabilities;
+			$description = 'Se han detectado vulnerabilidades conocidas en algunos de tus plugins instalados.';
+		}
 
 		return array(
 			'name'           => 'Vulnerabilidades de plugins',
-			'status'         => 'warning',
-			'risk'           => 'Alto',
+			'status'         => $status,
+			'risk'           => $risk,
 			'is_vulnerabilities' => true,
-			'data'           => $vulnerabilities,
-			'description'    => 'Se han detectado vulnerabilidades conocidas en algunos de tus plugins instalados.',
+			'data'           => $data,
+			'description'    => $description,
 			'recommendation' => 'Actualiza los plugins afectados a la versión más reciente de inmediato.',
 		);
 	}

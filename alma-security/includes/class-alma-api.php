@@ -42,4 +42,50 @@ class Alma_API {
 
 		return ! is_wp_error( $response );
 	}
+
+	/**
+	 * Get plugin vulnerabilities from an external API.
+	 *
+	 * @return array|WP_Error
+	 */
+	public function get_plugin_vulnerabilities() {
+		// In a real scenario, this would be a dedicated security API endpoint
+		// For now, we use the configured endpoint or a default if available
+		$endpoint = get_option( 'alma_security_api_endpoint' );
+
+		if ( ! $endpoint ) {
+			return new WP_Error( 'no_endpoint', 'No se ha configurado un endpoint de API.' );
+		}
+
+		// Append vulnerabilities path if it's the base endpoint
+		$vulnerabilities_url = trailingslashit( $endpoint ) . 'vulnerabilities';
+
+		$api_key = get_option( 'alma_security_api_key' );
+
+		$response = wp_remote_get( $vulnerabilities_url, array(
+			'timeout' => 15,
+			'headers' => array(
+				'Accept'        => 'application/json',
+				'Authorization' => 'Bearer ' . $api_key
+			),
+		) );
+
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		$status_code = wp_remote_retrieve_response_code( $response );
+		if ( $status_code !== 200 ) {
+			return new WP_Error( 'api_error', 'Error en la API: ' . $status_code );
+		}
+
+		$body = wp_remote_retrieve_body( $response );
+		$data = json_decode( $body, true );
+
+		if ( json_last_error() !== JSON_ERROR_NONE ) {
+			return new WP_Error( 'invalid_json', 'Respuesta de API inválida (JSON error).' );
+		}
+
+		return $data;
+	}
 }
