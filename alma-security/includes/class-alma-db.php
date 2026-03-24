@@ -68,6 +68,10 @@ class Alma_DB {
 	}
 
 	public function save_check_result( $id, $data ) {
+		if ( empty( $id ) || empty( $data['name'] ) ) {
+			return false;
+		}
+
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'alma_scans';
 		$history_table = $wpdb->prefix . 'alma_scan_history';

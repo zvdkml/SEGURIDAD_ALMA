@@ -6,6 +6,36 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class Alma_Scanner {
 
+	public static function get_check_name( $id ) {
+		$names = array(
+			'wp_update'         => 'Versión de WordPress',
+			'xmlrpc'            => 'XML-RPC',
+			'debug_mode'        => 'Modo Debug',
+			'sensitive_files'   => 'Archivos Sensibles',
+			'plugins_detailed'  => 'Análisis Detallado de Plugins',
+			'themes_detailed'   => 'Análisis Detallado de Temas',
+			'php_version'       => 'Versión de PHP',
+			'server_config'     => 'Configuración del Servidor',
+			'https'             => 'Conexión HTTPS',
+			'file_permissions'  => 'Permisos de Archivos',
+			'directory_listing' => 'Listado de Directorios',
+			'admin_users'       => 'Nombre de Usuario Inseguro',
+			'admin_count'       => 'Cantidad de Administradores',
+			'malware_scan'      => 'Escaneo de Malware',
+			'login_attempts'    => 'Intentos de Login',
+			'hidden_login'      => 'URL de Login Oculta',
+			'db_prefix'         => 'Prefijo de Base de Datos',
+			'db_remote'         => 'Acceso Remoto DB',
+			'core_integrity'    => 'Integridad del Core',
+			'firewall_detect'   => 'Estado del Firewall',
+			'security_headers'  => 'Cabeceras de Seguridad',
+			'backup_detect'     => 'Sistema de Backups',
+			'plugins_update'    => 'Actualización de Plugins',
+			'themes_update'     => 'Actualización de Temas',
+		);
+		return isset( $names[ $id ] ) ? $names[ $id ] : '';
+	}
+
 	public function run_scan( $type = 'all', $check_id = '' ) {
 		$all_checks = array(
 			'wp'      => array( 'wp_update', 'debug_mode', 'xmlrpc', 'sensitive_files', 'server_config' ),
@@ -32,7 +62,7 @@ class Alma_Scanner {
 				'wp_update', 'xmlrpc', 'debug_mode', 'sensitive_files',
 				'plugins_detailed',
 				'themes_detailed',
-				'php_version', 'server_config', 'https', 'directory_listing',
+				'php_version', 'server_config', 'https', 'file_permissions', 'directory_listing',
 				'admin_users', 'admin_count',
 				'malware_scan',
 				'login_attempts', 'hidden_login',
@@ -77,12 +107,16 @@ class Alma_Scanner {
 				$is_secure = false;
 			}
 		}
+
+		$fix_active = get_option( 'alma_fix_wp_update' );
+		$is_secure = $is_secure || $fix_active;
+
 		return array(
 			'name'           => 'Versión de WordPress',
 			'status'         => $is_secure ? 'secure' : 'warning',
 			'risk'           => 'Medio',
-			'description'    => $is_secure ? 'WordPress está actualizado.' : 'Hay una nueva versión de WordPress disponible que puede contener parches de seguridad.',
-			'recommendation' => 'Actualiza WordPress a la última versión disponible.',
+			'description'    => $is_secure ? ( $fix_active ? 'Actualización de WordPress mitigada internamente.' : 'WordPress está actualizado.' ) : 'Hay una nueva versión de WordPress disponible que puede contener parches de seguridad.',
+			'recommendation' => 'Actualiza WordPress a la última versión disponible o utiliza la mitigación de Alma Security.',
 		);
 	}
 
@@ -796,6 +830,10 @@ class Alma_Scanner {
 
 			case 'plugins_update':
 				update_option( 'alma_fix_plugins_update', 1 );
+				return true;
+
+			case 'wp_update':
+				update_option( 'alma_fix_wp_update', 1 );
 				return true;
 
 			case 'themes_detailed':

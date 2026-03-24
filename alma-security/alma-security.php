@@ -173,6 +173,86 @@ class Seguridad_Alma {
 			} elseif ( $relative_path === '/security/issues' ) {
 				include ALMA_SECURITY_PATH . 'templates/issues.php';
 			} else {
+				$sections = array(
+					'wp'       => array(
+						'title' => 'WordPress Security',
+						'icon' => 'M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4',
+						'color' => 'blue',
+						'checks' => array('wp_update', 'debug_mode', 'xmlrpc', 'sensitive_files', 'server_config')
+					),
+					'plugins'  => array(
+						'title' => 'Plugin Security',
+						'icon' => 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4',
+						'color' => 'purple',
+						'checks' => array('plugins_detailed')
+					),
+					'themes'   => array(
+						'title' => 'Theme Security',
+						'icon' => 'M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5z',
+						'color' => 'pink',
+						'checks' => array('themes_detailed')
+					),
+					'server'   => array(
+						'title' => 'Server Security',
+						'icon' => 'M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2',
+						'color' => 'green',
+						'checks' => array('php_version', 'https', 'file_permissions', 'directory_listing')
+					),
+					'users'    => array(
+						'title' => 'User Security',
+						'icon' => 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1z',
+						'color' => 'orange',
+						'checks' => array('admin_users', 'admin_count', 'login_attempts')
+					),
+					'malware'  => array(
+						'title' => 'Malware Scan',
+						'icon' => 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z',
+						'color' => 'red',
+						'checks' => array('malware_scan')
+					),
+					'login'    => array(
+						'title' => 'Login Security Scan',
+						'icon' => 'M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1',
+						'color' => 'indigo',
+						'checks' => array('login_attempts', 'hidden_login')
+					),
+					'db'       => array(
+						'title' => 'Database Security Scan',
+						'icon' => 'M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7c0-2-1-3-3-3H7c-2 0-3 1-3 3zm4-1h8',
+						'color' => 'yellow',
+						'checks' => array('db_prefix', 'db_remote')
+					),
+					'file_int' => array(
+						'title' => 'File Integrity Scan',
+						'icon' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+						'color' => 'teal',
+						'checks' => array('core_integrity')
+					),
+					'firewall' => array(
+						'title' => 'Firewall Status',
+						'icon' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z',
+						'color' => 'cyan',
+						'checks' => array('firewall_detect')
+					),
+					'headers'  => array(
+						'title' => 'Security Headers Scan',
+						'icon' => 'M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z',
+						'color' => 'blue',
+						'checks' => array('security_headers')
+					),
+					'backup'   => array(
+						'title' => 'Backup Security',
+						'icon' => 'M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2',
+						'color' => 'gray',
+						'checks' => array('backup_detect')
+					),
+					'updates'  => array(
+						'title' => 'Update Monitor',
+						'icon' => 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15',
+						'color' => 'blue',
+						'checks' => array('wp_update', 'plugins_update', 'themes_update')
+					),
+				);
 				include ALMA_SECURITY_PATH . 'templates/dashboard.php';
 			}
 			exit;
