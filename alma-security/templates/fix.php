@@ -125,7 +125,8 @@ if ( $result['status'] === 'warning' ) {
                         }
                     });
                 } else {
-                    alert('Error: ' + (r.data || 'No se pudo completar la reparación.'));
+                    const message = (r.data && r.data.message) ? r.data.message : (r.data || 'No se pudo completar la reparación.');
+                    alert('Error: ' + message);
                     btn.prop('disabled', false).removeClass('opacity-50 cursor-not-allowed');
                     text.text('REINTENTAR REPARACIÓN');
                     icon.removeClass('animate-spin');

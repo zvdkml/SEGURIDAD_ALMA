@@ -158,15 +158,15 @@ class Alma_Admin {
 
 		// Security Checks
 		if ( $type === 'all' && ! $auth->can( 'full_scan' ) ) {
-			wp_send_json_error( 'No tienes permisos para realizar un escaneo completo.' );
+			wp_send_json_error( array( 'message' => 'No tienes permisos para realizar un escaneo completo.' ) );
 		}
 
 		if ( ! empty( $check_id ) && ! $auth->can( 'individual_scan' ) ) {
-			wp_send_json_error( 'No tienes permisos para realizar escaneos individuales.' );
+			wp_send_json_error( array( 'message' => 'No tienes permisos para realizar escaneos individuales.' ) );
 		}
 
 		if ( $type !== 'all' && empty( $check_id ) && ! $auth->can( 'individual_scan' ) ) {
-			wp_send_json_error( 'No tienes permisos para realizar escaneos de módulos.' );
+			wp_send_json_error( array( 'message' => 'No tienes permisos para realizar escaneos de módulos.' ) );
 		}
 
 		$scanner = new Alma_Scanner();
@@ -201,7 +201,7 @@ class Alma_Admin {
 		check_ajax_referer( 'alma_security_nonce', 'nonce' );
 		$auth = new Alma_Auth();
 		if ( ! $auth->can( 'delete_data' ) ) {
-			wp_send_json_error( 'Acceso denegado.' );
+			wp_send_json_error( array( 'message' => 'Acceso denegado.' ) );
 		}
 
 		global $wpdb;
@@ -209,7 +209,7 @@ class Alma_Admin {
 		$wpdb->query( "TRUNCATE TABLE {$wpdb->prefix}alma_scan_history" );
 		update_option( 'alma_security_history', array() );
 
-		wp_send_json_success( 'Datos eliminados correctamente.' );
+		wp_send_json_success( array( 'message' => 'Datos eliminados correctamente.' ) );
 	}
 
 	public function ajax_get_check_history() {
@@ -217,7 +217,7 @@ class Alma_Admin {
 
 		$check_id = isset( $_GET['check_id'] ) ? sanitize_text_field( $_GET['check_id'] ) : '';
 		if ( empty( $check_id ) ) {
-			wp_send_json_error( 'ID de verificación faltante.' );
+			wp_send_json_error( array( 'message' => 'ID de verificación faltante.' ) );
 		}
 
 		$db = new Alma_DB();
@@ -232,13 +232,13 @@ class Alma_Admin {
 		$auth = new Alma_Auth();
 		if ( ! $auth->can( 'fix_issues' ) ) {
 			error_log( "[Alma Security] Error: Permisos insuficientes" );
-			wp_send_json_error( 'No tienes permisos para realizar reparaciones.' );
+			wp_send_json_error( array( 'message' => 'No tienes permisos para realizar reparaciones.' ) );
 		}
 
 		$check_id = isset( $_POST['check_id'] ) ? sanitize_text_field( $_POST['check_id'] ) : '';
 		error_log( "[Alma Security] Parámetro check recibido: " . $check_id );
 		if ( empty( $check_id ) ) {
-			wp_send_json_error( 'ID de verificación faltante.' );
+			wp_send_json_error( array( 'message' => 'ID de verificación faltante.' ) );
 		}
 
 		$scanner = new Alma_Scanner();
@@ -271,20 +271,20 @@ class Alma_Admin {
 				$history = new Alma_History();
 				$history->save_scan( $full_scan, 'all' );
 
-				wp_send_json_success( 'Reparación completada y verificada.' );
+				wp_send_json_success( array( 'message' => 'Reparación completada y verificada.' ) );
 			} else {
-				wp_send_json_error( 'La reparación fue intentada pero el sistema sigue detectando el problema. Por favor, revisa las recomendaciones.' );
+				wp_send_json_error( array( 'message' => 'La reparación fue intentada pero el sistema sigue detectando el problema. Por favor, revisa las recomendaciones.' ) );
 			}
 		}
 
-		wp_send_json_error( 'No se pudo verificar la reparación.' );
+		wp_send_json_error( array( 'message' => 'No se pudo verificar la reparación.' ) );
 	}
 
 	public function ajax_manage_users() {
 		check_ajax_referer( 'alma_security_nonce', 'nonce' );
 		$auth = new Alma_Auth();
 		if ( ! $auth->can( 'manage_users' ) ) {
-			wp_send_json_error( 'Acceso denegado.' );
+			wp_send_json_error( array( 'message' => 'Acceso denegado.' ) );
 		}
 
 		$operation = isset( $_POST['operation'] ) ? sanitize_text_field( $_POST['operation'] ) : '';
@@ -294,14 +294,14 @@ class Alma_Admin {
 			$pass = $_POST['password'];
 			$role = sanitize_text_field( $_POST['role'] );
 			$auth->create_user( $user, $pass, $role );
-			wp_send_json_success( 'Usuario creado.' );
+			wp_send_json_success( array( 'message' => 'Usuario creado.' ) );
 		} elseif ( $operation === 'delete' ) {
 			$id = intval( $_POST['user_id'] );
 			$auth->delete_user( $id );
-			wp_send_json_success( 'Usuario eliminado.' );
+			wp_send_json_success( array( 'message' => 'Usuario eliminado.' ) );
 		}
 
-		wp_send_json_error( 'Operación inválida.' );
+		wp_send_json_error( array( 'message' => 'Operación inválida.' ) );
 	}
 }
 

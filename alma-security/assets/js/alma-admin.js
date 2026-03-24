@@ -121,10 +121,12 @@
             nonce: alma_ajax.nonce
         }, function(response) {
             if (response.success) {
-                alert(response.data);
+                const message = (response.data && response.data.message) ? response.data.message : response.data;
+                alert(message);
                 location.reload();
             } else {
-                alert('Error: ' + response.data);
+                const message = (response.data && response.data.message) ? response.data.message : response.data;
+                alert('Error: ' + message);
             }
         }).always(function() {
             btn.prop('disabled', false).removeClass('opacity-50');
@@ -305,10 +307,11 @@
                 check_id: checkId
             },
             success: function(response) {
-                if (response.success && response.data.vulnerabilities[checkId]) {
+                if (response.success && response.data.vulnerabilities && response.data.vulnerabilities[checkId]) {
                     updateCheckUI(checkId, response.data.vulnerabilities[checkId]);
                 } else {
-                    alert('Error al escanear: ' + (response.data || 'Respuesta inválida'));
+                    const message = (response.data && response.data.message) ? response.data.message : response.data;
+                    alert('Error al escanear: ' + (message || 'Respuesta inválida'));
                 }
             },
             error: function() {
@@ -420,7 +423,7 @@
         }, function(response) {
             if (response.success) {
                 content.empty();
-                if (response.data.length === 0) {
+                if (!Array.isArray(response.data) || response.data.length === 0) {
                     content.append($('<div class="text-center py-10 text-gray-400 italic">No hay historial para esta verificación.</div>'));
                 } else {
                     response.data.forEach(item => {
@@ -442,7 +445,8 @@
                     });
                 }
             } else {
-                content.html('<div class="text-red-500 font-bold p-4"></div>').find('div').text('Error: ' + response.data);
+                const message = (response.data && response.data.message) ? response.data.message : response.data;
+                content.html('<div class="text-red-500 font-bold p-4"></div>').find('div').text('Error: ' + message);
             }
         });
     }
@@ -534,7 +538,8 @@
                     alma_ajax.history.unshift(response.data);
                     updateUI(response.data, type);
                 } else {
-                    alert('Error: ' + response.data);
+                    const message = (response.data && response.data.message) ? response.data.message : response.data;
+                    alert('Error: ' + message);
                 }
             },
             error: function() {
