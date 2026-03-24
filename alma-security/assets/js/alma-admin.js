@@ -329,13 +329,19 @@
             if (risk === 'medio' || risk === 'medium') color = 'yellow';
             else if (risk === 'bajo' || risk === 'low') color = 'green';
 
+            const installedBadge = v.installed ? '<span class="ml-auto bg-red-600 text-white text-[7px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter animate-pulse" title="Este plugin instalado tiene vulnerabilidades">VULNERABLE</span>' : '';
+            const borderClass = v.installed ? 'border-red-600 border-2' : `border-${color}-100/50`;
+            const installedAlert = v.installed ? '<div class="text-red-600 font-black uppercase text-[7px] mb-1 px-1.5 animate-pulse">Este plugin instalado tiene vulnerabilidades</div>' : '';
+
             html += `
-                <div class="flex items-center text-[9px] bg-${color}-50/50 p-1.5 rounded-lg border border-${color}-100/50 shadow-sm transition-all hover:bg-${color}-100/30">
+                <div class="flex items-center text-[9px] bg-${color}-50/50 p-1.5 rounded-lg border ${borderClass} shadow-sm transition-all hover:bg-${color}-100/30">
                     <span class="font-black text-${color}-700 mr-2 uppercase tracking-tighter w-16 truncate" title="${v.name}">${v.name}</span>
                     <span class="w-1 h-1 bg-${color}-300 rounded-full mr-2 shrink-0"></span>
                     <span class="font-bold text-${color}-600 mr-2 shrink-0">${v.risk}</span>
                     <span class="text-${color}-500 italic truncate" title="${v.issue}">${v.issue}</span>
+                    ${installedBadge}
                 </div>
+                ${installedAlert}
             `;
         });
         html += '</div>';

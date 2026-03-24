@@ -754,10 +754,30 @@ class Alma_Scanner {
 			$status = 'warning';
 			$description = 'Aviso: ' . $vulnerabilities->get_error_message();
 		} elseif ( ! empty( $vulnerabilities ) && is_array( $vulnerabilities ) ) {
+			if ( ! function_exists( 'get_plugins' ) ) {
+				require_once ABSPATH . 'wp-admin/includes/plugin.php';
+			}
+			$installed_plugins = get_plugins();
+			$installed_names = array();
+			foreach ( $installed_plugins as $plugin ) {
+				$installed_names[] = strtolower( $plugin['Name'] );
+			}
+
 			// Filter only plugins
 			$plugin_vulnerabilities = array_filter( $vulnerabilities, function( $v ) {
 				return isset( $v['type'] ) && $v['type'] === 'plugin';
 			} );
+
+			// Check for matches with installed plugins
+			foreach ( $plugin_vulnerabilities as &$v ) {
+				$v['installed'] = false;
+				if ( isset( $v['name'] ) ) {
+					$v_name = strtolower( $v['name'] );
+					if ( in_array( $v_name, $installed_names ) ) {
+						$v['installed'] = true;
+					}
+				}
+			}
 
 			// Sort by most recent (descending)
 			usort( $plugin_vulnerabilities, function( $a, $b ) {
@@ -774,6 +794,15 @@ class Alma_Scanner {
 				$risk = 'Alto';
 				$data = $plugin_vulnerabilities;
 				$description = 'Se han detectado vulnerabilidades conocidas en algunos de tus plugins instalados.';
+
+				// Highlight if any of the displayed ones is actually installed
+				foreach ( $plugin_vulnerabilities as $v ) {
+					if ( ! empty( $v['installed'] ) ) {
+						$status = 'critical';
+						$description = '¡ALERTA! Se han detectado vulnerabilidades críticas en plugins que TIENES instalados.';
+						break;
+					}
+				}
 			}
 		}
 
