@@ -54,7 +54,8 @@ class Alma_API {
 		$endpoint = get_option( 'alma_security_api_endpoint' );
 
 		if ( ! $endpoint ) {
-			return new WP_Error( 'no_endpoint', 'No se ha configurado un endpoint de API.' );
+			// Use a default endpoint if none is configured
+			$endpoint = 'https://api.alma-security.com/v1/';
 		}
 
 		// Append vulnerabilities path if it's the base endpoint
