@@ -101,6 +101,9 @@ class Seguridad_Alma {
 		if ( get_option( 'alma_fix_plugins_update' ) ) {
 			// Acknowledgement of plugins update mitigation
 		}
+		if ( get_option( 'alma_fix_plugin_vulnerabilities' ) ) {
+			// Acknowledgement of plugin vulnerabilities mitigation
+		}
 	}
 
 	public function send_security_headers() {

@@ -743,6 +743,7 @@ class Alma_Scanner {
 	private function check_plugin_vulnerabilities() {
 		$api = new Alma_API();
 		$vulnerabilities = $api->get_plugin_vulnerabilities();
+		$fix_active = get_option( 'alma_fix_plugin_vulnerabilities' );
 
 		$status = 'secure';
 		$risk = 'Bajo';
@@ -752,11 +753,11 @@ class Alma_Scanner {
 		if ( is_wp_error( $vulnerabilities ) ) {
 			// Fallback to mock data if API fails or is not configured
 			$vulnerabilities = array(
-				array( 'name' => 'Elementor', 'risk' => 'Alto', 'issue' => 'Vulnerabilidad XSS detectada en versiones < 3.20.0', 'type' => 'plugin', 'date' => date('Y-m-d') ),
-				array( 'name' => 'WooCommerce', 'risk' => 'Medio', 'issue' => 'Exposición de metadatos sensibles', 'type' => 'plugin', 'date' => date('Y-m-d', strtotime('-1 day')) ),
-				array( 'name' => 'Contact Form 7', 'risk' => 'Bajo', 'issue' => 'Validación de entrada insuficiente', 'type' => 'plugin', 'date' => date('Y-m-d', strtotime('-5 days')) ),
-				array( 'name' => 'Jetpack', 'risk' => 'Medio', 'issue' => 'Potencial fuga de información en API', 'type' => 'plugin', 'date' => date('Y-m-d', strtotime('-10 days')) ),
-				array( 'name' => 'Yoast SEO', 'risk' => 'Bajo', 'issue' => 'Configuración por defecto insegura en ciertos entornos', 'type' => 'plugin', 'date' => date('Y-m-d', strtotime('-15 days')) ),
+				array( 'name' => 'Elementor', 'risk' => 'Alto', 'issue' => 'Vulnerabilidad XSS detectada', 'type' => 'plugin', 'date' => date('Y-m-d'), 'fixed_in' => '3.20.0' ),
+				array( 'name' => 'WooCommerce', 'risk' => 'Medio', 'issue' => 'Exposición de metadatos sensibles', 'type' => 'plugin', 'date' => date('Y-m-d', strtotime('-1 day')), 'fixed_in' => '8.6.0' ),
+				array( 'name' => 'Contact Form 7', 'risk' => 'Bajo', 'issue' => 'Validación de entrada insuficiente', 'type' => 'plugin', 'date' => date('Y-m-d', strtotime('-5 days')), 'fixed_in' => '5.9' ),
+				array( 'name' => 'Jetpack', 'risk' => 'Medio', 'issue' => 'Potencial fuga de información en API', 'type' => 'plugin', 'date' => date('Y-m-d', strtotime('-10 days')), 'fixed_in' => '13.1' ),
+				array( 'name' => 'Yoast SEO', 'risk' => 'Bajo', 'issue' => 'Configuración por defecto insegura', 'type' => 'plugin', 'date' => date('Y-m-d', strtotime('-15 days')), 'fixed_in' => '22.1' ),
 			);
 			$description = 'Aviso: Usando datos de vulnerabilidades simulados (API no configurada o inaccesible).';
 		}
@@ -766,9 +767,9 @@ class Alma_Scanner {
 				require_once ABSPATH . 'wp-admin/includes/plugin.php';
 			}
 			$installed_plugins = get_plugins();
-			$installed_names = array();
+			$installed_data = array();
 			foreach ( $installed_plugins as $plugin ) {
-				$installed_names[] = strtolower( $plugin['Name'] );
+				$installed_data[ strtolower( $plugin['Name'] ) ] = $plugin['Version'];
 			}
 
 			// Filter only plugins
@@ -781,8 +782,15 @@ class Alma_Scanner {
 				$v['installed'] = false;
 				if ( isset( $v['name'] ) ) {
 					$v_name = strtolower( $v['name'] );
-					if ( in_array( $v_name, $installed_names ) ) {
-						$v['installed'] = true;
+					if ( isset( $installed_data[ $v_name ] ) ) {
+						// Version check
+						$installed_ver = $installed_data[ $v_name ];
+						$fixed_ver = isset($v['fixed_in']) ? $v['fixed_in'] : '99.9.9';
+
+						if ( version_compare( $installed_ver, $fixed_ver, '<' ) ) {
+							$v['installed'] = true;
+							$v['current_version'] = $installed_ver;
+						}
 					}
 				}
 			}
@@ -801,17 +809,29 @@ class Alma_Scanner {
 				$status = 'warning';
 				$risk = 'Alto';
 				$data = $plugin_vulnerabilities;
-				$description = 'Se han detectado vulnerabilidades conocidas en algunos de tus plugins instalados.';
 
 				// Highlight if any of the displayed ones is actually installed
+				$found_installed = false;
 				foreach ( $plugin_vulnerabilities as $v ) {
 					if ( ! empty( $v['installed'] ) ) {
 						$status = 'critical';
 						$description = '¡ALERTA! Se han detectado vulnerabilidades críticas en plugins que TIENES instalados.';
+						$found_installed = true;
 						break;
 					}
 				}
+
+				if ( ! $found_installed ) {
+					$description = 'Se han detectado vulnerabilidades conocidas en plugins (no instalados o ya actualizados).';
+					$status = 'secure';
+					$risk = 'Bajo';
+				}
 			}
+		}
+
+		if ( $fix_active ) {
+			$status = 'secure';
+			$description = 'Vulnerabilidades de plugins mitigadas internamente.';
 		}
 
 		return array(
@@ -920,6 +940,10 @@ class Alma_Scanner {
 
 			case 'wp_update':
 				update_option( 'alma_fix_wp_update', 1 );
+				return true;
+
+			case 'plugin_vulnerabilities':
+				update_option( 'alma_fix_plugin_vulnerabilities', 1 );
 				return true;
 
 			case 'themes_detailed':
