@@ -48,45 +48,44 @@ class Alma_API {
 	 *
 	 * @return array|WP_Error
 	 */
-	public function get_plugin_vulnerabilities() {
-		// In a real scenario, this would be a dedicated security API endpoint
-		// For now, we use the configured endpoint or a default if available
-		$endpoint = get_option( 'alma_security_api_endpoint' );
+	/**
+	 * Consume the WPVulnerability API for a specific plugin.
+	 *
+	 * @param string $slug Plugin slug.
+	 * @return array
+	 */
+	/**
+	 * Get vulnerability information for a specific plugin from WPVulnerability API.
+	 *
+	 * @param string $slug Plugin slug.
+	 * @return array
+	 */
+	public function get_plugin_vulnerability( $slug ) {
+		$url = 'https://www.wpvulnerability.net/plugin/' . sanitize_title( $slug ) . '/';
 
-		if ( ! $endpoint ) {
-			// Use a default endpoint if none is configured
-			$endpoint = 'https://api.alma-security.com/v1/';
-		}
-
-		// Append vulnerabilities path if it's the base endpoint
-		$vulnerabilities_url = trailingslashit( $endpoint ) . 'vulnerabilities';
-
-		$api_key = get_option( 'alma_security_api_key' );
-
-		$response = wp_remote_get( $vulnerabilities_url, array(
-			'timeout' => 15,
+		$response = wp_remote_get( $url, array(
+			'timeout' => 10,
 			'headers' => array(
-				'Accept'        => 'application/json',
-				'Authorization' => 'Bearer ' . $api_key
+				'Accept' => 'application/json',
 			),
 		) );
 
 		if ( is_wp_error( $response ) ) {
-			return $response;
+			return array();
 		}
 
 		$status_code = wp_remote_retrieve_response_code( $response );
 		if ( $status_code !== 200 ) {
-			return new WP_Error( 'api_error', 'Error en la API: ' . $status_code );
+			return array();
 		}
 
 		$body = wp_remote_retrieve_body( $response );
 		$data = json_decode( $body, true );
 
 		if ( json_last_error() !== JSON_ERROR_NONE ) {
-			return new WP_Error( 'invalid_json', 'Respuesta de API inválida (JSON error).' );
+			return array();
 		}
 
-		return $data;
+		return is_array( $data ) ? $data : array();
 	}
 }
