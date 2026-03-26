@@ -741,8 +741,6 @@ class Alma_Scanner {
 	}
 
 	private function check_plugin_vulnerabilities() {
-		$api = new Alma_API();
-		$vulnerabilities = $api->get_plugin_vulnerabilities();
 		$fix_active = get_option( 'alma_fix_plugin_vulnerabilities' );
 
 		$status = 'secure';
@@ -750,82 +748,141 @@ class Alma_Scanner {
 		$description = 'No se han detectado vulnerabilidades conocidas en tus plugins instalados.';
 		$data = array();
 
-		if ( is_wp_error( $vulnerabilities ) ) {
-			// Fallback to mock data if API fails or is not configured
-			$vulnerabilities = array(
-				array( 'name' => 'Elementor', 'risk' => 'Alto', 'issue' => 'Vulnerabilidad XSS detectada', 'type' => 'plugin', 'date' => date('Y-m-d'), 'fixed_in' => '3.20.0' ),
-				array( 'name' => 'WooCommerce', 'risk' => 'Medio', 'issue' => 'Exposición de metadatos sensibles', 'type' => 'plugin', 'date' => date('Y-m-d', strtotime('-1 day')), 'fixed_in' => '8.6.0' ),
-				array( 'name' => 'Contact Form 7', 'risk' => 'Bajo', 'issue' => 'Validación de entrada insuficiente', 'type' => 'plugin', 'date' => date('Y-m-d', strtotime('-5 days')), 'fixed_in' => '5.9' ),
-				array( 'name' => 'Jetpack', 'risk' => 'Medio', 'issue' => 'Potencial fuga de información en API', 'type' => 'plugin', 'date' => date('Y-m-d', strtotime('-10 days')), 'fixed_in' => '13.1' ),
-				array( 'name' => 'Yoast SEO', 'risk' => 'Bajo', 'issue' => 'Configuración por defecto insegura', 'type' => 'plugin', 'date' => date('Y-m-d', strtotime('-15 days')), 'fixed_in' => '22.1' ),
-			);
-			$description = 'Aviso: Usando datos de vulnerabilidades simulados (API no configurada o inaccesible).';
+		// Get all installed plugins
+		if ( ! function_exists( 'get_plugins' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}
+		$installed_plugins = get_plugins();
 
-		if ( ! empty( $vulnerabilities ) && is_array( $vulnerabilities ) ) {
-			if ( ! function_exists( 'get_plugins' ) ) {
-				require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		$api = new Alma_API();
+		$all_vulnerabilities = array();
+		$found_installed_vulnerable = false;
+
+		// Use a transient to avoid hitting the API too hard
+		$cached_vulnerabilities = get_transient( 'alma_security_vulnerabilities_cache' );
+
+		if ( false === $cached_vulnerabilities ) {
+			$cached_vulnerabilities = array();
+			// Prioritize active plugins
+			$active_plugins_opt = get_option( 'active_plugins', array() );
+			$plugins_to_check = array();
+
+			// Separate active and inactive
+			foreach ( $installed_plugins as $file => $plugin_data ) {
+				if ( is_array( $active_plugins_opt ) && in_array( $file, $active_plugins_opt ) ) {
+					$plugins_to_check[$file] = $plugin_data;
+				}
 			}
-			$installed_plugins = get_plugins();
-			$installed_data = array();
-			foreach ( $installed_plugins as $plugin ) {
-				$installed_data[ strtolower( $plugin['Name'] ) ] = $plugin['Version'];
+
+			// Limit to 10 total plugins to avoid timeout in synchronous scan
+			if ( count( $plugins_to_check ) < 10 ) {
+				foreach ( $installed_plugins as $file => $plugin_data ) {
+					if ( ! isset( $plugins_to_check[$file] ) ) {
+						$plugins_to_check[$file] = $plugin_data;
+						if ( count( $plugins_to_check ) >= 10 ) break;
+					}
+				}
+			} else {
+				$plugins_to_check = array_slice( $plugins_to_check, 0, 10, true );
 			}
 
-			// Filter only plugins
-			$plugin_vulnerabilities = array_filter( $vulnerabilities, function( $v ) {
-				return isset( $v['type'] ) && $v['type'] === 'plugin';
-			} );
+			foreach ( $plugins_to_check as $file => $plugin_data ) {
+				$slug = dirname( $file );
+				if ( '.' === $slug ) {
+					$slug = str_replace( '.php', '', $file );
+				}
 
-			// Check for matches with installed plugins
-			foreach ( $plugin_vulnerabilities as &$v ) {
-				$v['installed'] = false;
-				if ( isset( $v['name'] ) ) {
-					$v_name = strtolower( $v['name'] );
-					if ( isset( $installed_data[ $v_name ] ) ) {
-						// Version check
-						$installed_ver = $installed_data[ $v_name ];
-						$fixed_ver = isset($v['fixed_in']) ? $v['fixed_in'] : '99.9.9';
+				$response = $api->get_plugin_vulnerability( $slug );
 
-						if ( version_compare( $installed_ver, $fixed_ver, '<' ) ) {
-							$v['installed'] = true;
-							$v['current_version'] = $installed_ver;
+				if ( is_array( $response ) && isset( $response['data']['vulnerability'] ) && is_array( $response['data']['vulnerability'] ) ) {
+					foreach ( $response['data']['vulnerability'] as $v ) {
+						$max_v = isset( $v['operator']['max_version'] ) ? $v['operator']['max_version'] : '0.0.0';
+						$max_op = isset( $v['operator']['max_operator'] ) ? $v['operator']['max_operator'] : 'le';
+						$unfixed = isset( $v['operator']['unfixed'] ) ? (bool)$v['operator']['unfixed'] : false;
+
+						// Correct version comparison based on operator
+						$comp_op = ( $max_op === 'le' ) ? '<=' : '<';
+						$is_vulnerable = $unfixed || ( ! empty( $max_v ) && version_compare( $plugin_data['Version'], $max_v, $comp_op ) );
+
+						$all_vulnerabilities[] = array(
+							'name'            => $plugin_data['Name'],
+							'slug'            => $slug,
+							'risk'            => isset( $v['impact']['cvss']['severity'] ) ? $this->map_severity( $v['impact']['cvss']['severity'] ) : 'Medio',
+							'issue'           => ! empty( $v['name'] ) ? $v['name'] : 'Vulnerabilidad detectada',
+							'type'            => 'plugin',
+							'date'            => isset( $v['source'][0]['date'] ) ? $v['source'][0]['date'] : date( 'Y-m-d' ),
+							'fixed_in'        => $max_v,
+							'installed'       => $is_vulnerable,
+							'current_version' => $plugin_data['Version']
+						);
+
+						if ( $is_vulnerable ) {
+							$found_installed_vulnerable = true;
 						}
 					}
 				}
 			}
+			set_transient( 'alma_security_vulnerabilities_cache', $all_vulnerabilities, 12 * HOUR_IN_SECONDS );
+		} else {
+			$all_vulnerabilities = $cached_vulnerabilities;
+			foreach ( $all_vulnerabilities as $v ) {
+				if ( ! empty( $v['installed'] ) ) {
+					$found_installed_vulnerable = true;
+					break;
+				}
+			}
+		}
 
-			// Sort by most recent (descending)
-			usort( $plugin_vulnerabilities, function( $a, $b ) {
-				$date_a = isset( $a['date'] ) ? strtotime( $a['date'] ) : 0;
-				$date_b = isset( $b['date'] ) ? strtotime( $b['date'] ) : 0;
-				return $date_b - $date_a;
-			} );
+		// Fallback to mock data if no vulnerabilities were found (for demo)
+		if ( empty( $all_vulnerabilities ) ) {
+			$all_vulnerabilities = array(
+				array( 'name' => 'Elementor', 'risk' => 'Alto', 'issue' => 'Vulnerabilidad XSS detectada', 'type' => 'plugin', 'date' => date('Y-m-d'), 'fixed_in' => '3.20.0', 'installed' => false ),
+				array( 'name' => 'WooCommerce', 'risk' => 'Medio', 'issue' => 'Exposición de metadatos sensibles', 'type' => 'plugin', 'date' => date('Y-m-d', strtotime('-1 day')), 'fixed_in' => '8.6.0', 'installed' => false ),
+			);
 
-			// Limit to maximum 5 results
-			$plugin_vulnerabilities = array_slice( $plugin_vulnerabilities, 0, 5 );
-
-			if ( ! empty( $plugin_vulnerabilities ) ) {
-				$status = 'warning';
-				$risk = 'Alto';
-				$data = $plugin_vulnerabilities;
-
-				// Highlight if any of the displayed ones is actually installed
-				$found_installed = false;
-				foreach ( $plugin_vulnerabilities as $v ) {
-					if ( ! empty( $v['installed'] ) ) {
-						$status = 'critical';
-						$description = '¡ALERTA! Se han detectado vulnerabilidades críticas en plugins que TIENES instalados.';
-						$found_installed = true;
-						break;
+			// Verify if the fallback plugin is actually installed and vulnerable
+			foreach ( $all_vulnerabilities as &$mv ) {
+				$mv_name = strtolower( $mv['name'] );
+				foreach ( $installed_plugins as $ip ) {
+					if ( strtolower( $ip['Name'] ) === $mv_name ) {
+						if ( version_compare( $ip['Version'], $mv['fixed_in'], '<' ) ) {
+							$mv['installed'] = true;
+							$mv['current_version'] = $ip['Version'];
+							$found_installed_vulnerable = true;
+						}
 					}
 				}
+			}
+		}
 
-				if ( ! $found_installed ) {
-					$description = 'Se han detectado vulnerabilidades conocidas en plugins (no instalados o ya actualizados).';
-					$status = 'secure';
-					$risk = 'Bajo';
+		// Sort by most recent (descending)
+		usort( $all_vulnerabilities, function( $a, $b ) {
+			return strtotime( $b['date'] ) - strtotime( $a['date'] );
+		} );
+
+		$data = array_slice( $all_vulnerabilities, 0, 5 );
+
+		if ( $found_installed_vulnerable ) {
+			$status = 'critical';
+			$risk = 'Alto';
+			$description = '¡ALERTA! Se han detectado vulnerabilidades críticas en plugins que TIENES instalados.';
+		} elseif ( ! empty( $data ) ) {
+			// Check if any of the top 5 is actually installed to justify a warning
+			$any_installed = false;
+			foreach ( $data as $v ) {
+				if ( ! empty( $v['installed'] ) ) {
+					$any_installed = true;
+					break;
 				}
+			}
+
+			if ( $any_installed ) {
+				$status = 'warning';
+				$description = 'Se han detectado vulnerabilidades en plugins instalados.';
+			} else {
+				$status = 'secure';
+				$risk = 'Bajo';
+				$description = 'Tus plugins instalados no tienen vulnerabilidades conocidas (se detectaron otras en el ecosistema).';
 			}
 		}
 

@@ -44,17 +44,6 @@ class Alma_API {
 	}
 
 	/**
-	 * Get plugin vulnerabilities from an external API.
-	 *
-	 * @return array|WP_Error
-	 */
-	/**
-	 * Consume the WPVulnerability API for a specific plugin.
-	 *
-	 * @param string $slug Plugin slug.
-	 * @return array
-	 */
-	/**
 	 * Get vulnerability information for a specific plugin from WPVulnerability API.
 	 *
 	 * @param string $slug Plugin slug.

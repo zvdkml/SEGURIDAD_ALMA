@@ -279,7 +279,11 @@
                                         <?php if ($check_id === 'plugin_vulnerabilities' && $check_res && !empty($check_res['is_vulnerabilities'])) : ?>
                                             <?php
                                             $vulnerabilities = json_decode($check_res['result'], true);
-                                            include ALMA_SECURITY_PATH . 'templates/components/vulnerabilities-list.php';
+                                            if ( ! empty( $vulnerabilities ) ) {
+                                                include ALMA_SECURITY_PATH . 'templates/components/vulnerabilities-list.php';
+                                            } else {
+                                                echo '<p class="text-xs text-gray-500 leading-relaxed check-description italic">' . esc_html($check_res['description']) . '</p>';
+                                            }
                                             ?>
                                         <?php else : ?>
                                             <p class="text-xs text-gray-500 leading-relaxed check-description <?php echo $check_res ? '' : 'italic'; ?> line-clamp-2">
