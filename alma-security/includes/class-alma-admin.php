@@ -92,13 +92,16 @@ class Alma_Admin {
 		$score_history = $db->get_score_history();
 		$persisted_results = array();
 		foreach ( $db_results as $row ) {
+			$is_vulnerabilities = ! empty( $row['is_vulnerabilities'] );
 			$persisted_results[ $row['check_id'] ] = array(
-				'name'           => $row['check_name'],
-				'status'         => $row['status'],
-				'description'    => $row['result'],
-				'recommendation' => $row['recommendation'],
-				'risk_level'     => $row['risk_level'],
-				'last_scan_at'   => $row['last_scan_at']
+				'name'               => $row['check_name'],
+				'status'             => $row['status'],
+				'description'        => $is_vulnerabilities ? 'Se han detectado vulnerabilidades conocidas.' : $row['result'],
+				'recommendation'     => $row['recommendation'],
+				'risk_level'         => $row['risk_level'],
+				'last_scan_at'       => $row['last_scan_at'],
+				'is_vulnerabilities' => $is_vulnerabilities,
+				'data'               => $is_vulnerabilities ? json_decode( $row['result'], true ) : null,
 			);
 		}
 

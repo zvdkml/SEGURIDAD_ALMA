@@ -392,13 +392,16 @@
         'history'      => (new Alma_History())->get_history(),
         'scan_index'   => isset( $_GET['scan_index'] ) ? intval( $_GET['scan_index'] ) : -1,
         'db_results'   => array_reduce((new Alma_DB())->get_all_results(), function($carry, $item) {
+            $is_vulnerabilities = ! empty( $item['is_vulnerabilities'] );
             $carry[$item['check_id']] = [
                 'name' => $item['check_name'],
                 'status' => $item['status'],
-                'description' => $item['result'],
+                'description' => $is_vulnerabilities ? 'Se han detectado vulnerabilidades conocidas.' : $item['result'],
                 'recommendation' => $item['recommendation'],
                 'risk_level' => $item['risk_level'],
-                'last_scan_at' => $item['last_scan_at']
+                'last_scan_at' => $item['last_scan_at'],
+                'is_vulnerabilities' => $is_vulnerabilities,
+                'data' => $is_vulnerabilities ? json_decode( $item['result'], true ) : null,
             ];
             return $carry;
         }, []),

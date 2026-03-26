@@ -26,8 +26,8 @@ class Alma_API {
 			'domain'         => home_url(),
 			'scan_date'      => date( 'Y-m-d H:i:s', $data['timestamp'] ),
 			'security_score' => $data['score'],
-			'critical_count' => isset( $data['counts']['critico'] ) ? $data['counts']['critico'] : 0,
-			'warning_count'  => isset( $data['counts']['medio'] ) ? $data['counts']['medio'] : 0,
+			'critical_count' => isset( $data['counts']['critical'] ) ? $data['counts']['critical'] : 0,
+			'warning_count'  => isset( $data['counts']['warning'] ) ? $data['counts']['warning'] : 0,
 			'secure_count'   => $secure_count,
 		);
 

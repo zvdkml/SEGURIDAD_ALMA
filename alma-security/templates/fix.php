@@ -8,14 +8,28 @@ $db = new Alma_DB();
 $result = $db->get_check_result( $check_id );
 
 if ( ! $result ) {
-    echo '<div class="wrap alma-security-wrap p-10 font-sans text-gray-900 bg-gray-50 min-h-screen">
-        <div class="max-w-4xl mx-auto bg-white p-12 rounded-[3rem] shadow-xl border border-gray-100 text-center">
-            <h1 class="text-4xl font-black text-gray-900 mb-6">Verificación no encontrada</h1>
-            <p class="text-gray-500 mb-8 text-lg">No se han encontrado datos para esta verificación específica o aún no ha sido escaneada.</p>
-            <a href="' . home_url('/security') . '" class="inline-block bg-gray-900 text-white font-black py-4 px-10 rounded-2xl">Volver al Dashboard</a>
-        </div>
-    </div>';
-    return;
+    $check_name = Alma_Scanner::get_check_name( $check_id );
+
+    if ( ! empty( $check_name ) ) {
+        // ID is valid but no scan data exists yet
+        $result = array(
+            'check_id'   => $check_id,
+            'check_name' => $check_name,
+            'status'     => 'pending',
+            'result'     => 'Aún no se han detectado vulnerabilidades o la verificación está pendiente de escaneo.',
+            'recommendation' => 'Realiza un escaneo completo desde el dashboard para obtener información actualizada.',
+            'risk_level' => 'N/A'
+        );
+    } else {
+        echo '<div class="wrap alma-security-wrap p-10 font-sans text-gray-900 bg-gray-50 min-h-screen">
+            <div class="max-w-4xl mx-auto bg-white p-12 rounded-[3rem] shadow-xl border border-gray-100 text-center">
+                <h1 class="text-4xl font-black text-gray-900 mb-6">Verificación no encontrada</h1>
+                <p class="text-gray-500 mb-8 text-lg">No se han encontrado datos para esta verificación específica o el ID es inválido.</p>
+                <a href="' . home_url('/security') . '" class="inline-block bg-gray-900 text-white font-black py-4 px-10 rounded-2xl">Volver al Dashboard</a>
+            </div>
+        </div>';
+        return;
+    }
 }
 
 $status_label = 'Seguro';
