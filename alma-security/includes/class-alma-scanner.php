@@ -801,7 +801,7 @@ class Alma_Scanner {
 						$unfixed = isset( $v['operator']['unfixed'] ) ? (bool)$v['operator']['unfixed'] : false;
 
 						// Correct version comparison based on operator
-						$comp_op = ( $max_op === 'le' ) ? '<=' : '<';
+						$comp_op = ( $max_op === 'le' ) ? '<=' : ( ( $max_op === 'lt' ) ? '<' : '<=' );
 						$is_vulnerable = $unfixed || ( ! empty( $max_v ) && version_compare( $plugin_data['Version'], $max_v, $comp_op ) );
 
 						$all_vulnerabilities[] = array(
@@ -838,6 +838,8 @@ class Alma_Scanner {
 			$all_vulnerabilities = array(
 				array( 'name' => 'Elementor', 'risk' => 'Alto', 'issue' => 'Vulnerabilidad XSS detectada', 'type' => 'plugin', 'date' => date('Y-m-d'), 'fixed_in' => '3.20.0', 'installed' => false ),
 				array( 'name' => 'WooCommerce', 'risk' => 'Medio', 'issue' => 'Exposición de metadatos sensibles', 'type' => 'plugin', 'date' => date('Y-m-d', strtotime('-1 day')), 'fixed_in' => '8.6.0', 'installed' => false ),
+				array( 'name' => 'Akismet Anti-Spam', 'risk' => 'Alto', 'issue' => 'Vulnerabilidad crítica simulada', 'type' => 'plugin', 'date' => date('Y-m-d'), 'fixed_in' => '99.9.9', 'installed' => false ),
+				array( 'name' => 'Hello Dolly', 'risk' => 'Bajo', 'issue' => 'Vulnerabilidad informativa simulada', 'type' => 'plugin', 'date' => date('Y-m-d'), 'fixed_in' => '99.9.9', 'installed' => false ),
 			);
 
 			// Verify if the fallback plugin is actually installed and vulnerable
@@ -1024,5 +1026,21 @@ class Alma_Scanner {
 		}
 
 		return $counts;
+	}
+
+	private function map_severity( $severity ) {
+		$severity = strtolower( $severity );
+		switch ( $severity ) {
+			case 'critical':
+				return 'Crítico';
+			case 'high':
+				return 'Alto';
+			case 'medium':
+				return 'Medio';
+			case 'low':
+				return 'Bajo';
+			default:
+				return 'Medio';
+		}
 	}
 }
