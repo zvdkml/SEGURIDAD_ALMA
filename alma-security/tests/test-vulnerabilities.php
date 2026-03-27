@@ -93,25 +93,25 @@ echo "Status: " . $vulnerabilities['status'] . "\n";
 echo "Risk: " . $vulnerabilities['risk'] . "\n";
 echo "Description: " . $vulnerabilities['description'] . "\n";
 
-$found_akismet = false;
+$found_elementor = false;
 foreach ($vulnerabilities['data'] as $v) {
-    if ($v['name'] === 'Akismet Anti-Spam') {
-        $found_akismet = true;
-        echo "Found Akismet Anti-Spam vulnerability.\n";
+    if ($v['name'] === 'Elementor') {
+        $found_elementor = true;
+        echo "Found Elementor vulnerability (Static).\n";
         echo "Installed: " . ($v['installed'] ? 'YES' : 'NO') . "\n";
         if ($v['installed']) {
-            echo "SUCCESS: Akismet was correctly flagged as installed and vulnerable (via mock data).\n";
+            echo "SUCCESS: Elementor was correctly flagged as installed (via static data).\n";
         } else {
-            echo "FAILURE: Akismet was NOT flagged as installed.\n";
+            echo "FAILURE: Elementor was NOT flagged as installed.\n";
         }
     }
 }
 
-if (!$found_akismet) {
-    echo "FAILURE: Akismet Anti-Spam not found in results.\n";
+if (!$found_elementor) {
+    echo "FAILURE: Elementor not found in results.\n";
 }
 
-if ($vulnerabilities['status'] === 'warning' && $found_akismet) {
+if ($vulnerabilities['status'] === 'warning' && $found_elementor) {
     echo "Overall status is correctly set to 'warning' due to installed vulnerabilities.\n";
 } else {
     echo "Overall status is: " . $vulnerabilities['status'] . " (Expected: warning)\n";

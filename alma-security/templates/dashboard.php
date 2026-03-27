@@ -114,7 +114,6 @@
     </div>
 
     <!-- Security Sections Grid -->
-    <h3>TEST VULNERABILIDADES</h3>
     <div class="space-y-12 mb-20">
         <?php
         if (!isset($sections)) {

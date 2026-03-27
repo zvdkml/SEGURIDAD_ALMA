@@ -128,8 +128,29 @@ if (!function_exists('get_plugins')) {
 
 class WP_Error {
     public function __construct($code, $message) {}
+    public function get_error_message() { return "Mock error"; }
 }
 
+if (!function_exists('get_transient')) {
+    function get_transient($name) { return false; }
+}
+if (!function_exists('set_transient')) {
+    function set_transient($name, $val, $exp) { return true; }
+}
+if (!function_exists('wp_remote_retrieve_response_code')) {
+    function wp_remote_retrieve_response_code($res) { return 200; }
+}
+if (!function_exists('wp_remote_retrieve_body')) {
+    function wp_remote_retrieve_body($res) { return "{}"; }
+}
+if (!function_exists('sanitize_title')) {
+    function sanitize_title($t) { return $t; }
+}
+if (!defined('HOUR_IN_SECONDS')) {
+    define('HOUR_IN_SECONDS', 3600);
+}
+
+require_once __DIR__ . '/../includes/class-alma-api.php';
 require_once __DIR__ . '/../includes/class-alma-scanner.php';
 
 $scanner = new Alma_Scanner();
