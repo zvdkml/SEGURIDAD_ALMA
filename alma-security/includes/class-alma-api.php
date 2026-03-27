@@ -44,13 +44,31 @@ class Alma_API {
 	}
 
 	/**
-	 * Get vulnerability information for a specific plugin from WPVulnerability API.
+	 * Get vulnerability information from WPVulnerability API.
 	 *
-	 * @param string $slug Plugin slug.
-	 * @return array
+	 * @param string $type Type of vulnerability to check: 'core', 'plugin', or 'theme'.
+	 * @param string $slug Slug for 'plugin' or 'theme' types. Empty for 'core'.
+	 * @return array Decoded JSON data or empty array on failure.
 	 */
-	public function get_plugin_vulnerability( $slug ) {
-		$url = 'https://www.wpvulnerability.net/plugin/' . sanitize_title( $slug ) . '/';
+	public function get_vulnerability( $type, $slug = '' ) {
+		$base_url = 'https://www.wpvulnerability.net/';
+
+		switch ( $type ) {
+			case 'core':
+				global $wp_version;
+				$url = $base_url . 'core/' . $wp_version . '/';
+				break;
+			case 'plugin':
+				if ( empty( $slug ) ) return array();
+				$url = $base_url . 'plugin/' . sanitize_title( $slug ) . '/';
+				break;
+			case 'theme':
+				if ( empty( $slug ) ) return array();
+				$url = $base_url . 'theme/' . sanitize_title( $slug ) . '/';
+				break;
+			default:
+				return array();
+		}
 
 		$response = wp_remote_get( $url, array(
 			'timeout' => 10,
@@ -60,6 +78,7 @@ class Alma_API {
 		) );
 
 		if ( is_wp_error( $response ) ) {
+			error_log( "[Alma Security API] Error al conectar con WPVulnerability ($type $slug): " . $response->get_error_message() );
 			return array();
 		}
 
@@ -72,6 +91,7 @@ class Alma_API {
 		$data = json_decode( $body, true );
 
 		if ( json_last_error() !== JSON_ERROR_NONE ) {
+			error_log( "[Alma Security API] Error al decodificar JSON de WPVulnerability ($type $slug)" );
 			return array();
 		}
 

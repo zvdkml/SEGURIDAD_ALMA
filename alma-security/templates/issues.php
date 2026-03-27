@@ -25,9 +25,9 @@ $modules = array(
 
 // Map check IDs back to modules
 $check_to_module = array(
-    'wp_update' => 'wp', 'debug_mode' => 'wp', 'xmlrpc' => 'wp', 'sensitive_files' => 'wp', 'server_config' => 'wp',
+    'wp_update' => 'wp', 'wp_vulnerabilities' => 'wp', 'debug_mode' => 'wp', 'xmlrpc' => 'wp', 'sensitive_files' => 'wp', 'server_config' => 'wp',
     'plugins_detailed' => 'plugins', 'plugin_vulnerabilities' => 'plugins', 'plugins_update' => 'updates',
-    'themes_detailed' => 'themes', 'themes_update' => 'updates',
+    'themes_detailed' => 'themes', 'theme_vulnerabilities' => 'themes', 'themes_update' => 'updates',
     'php_version' => 'server', 'https' => 'server', 'file_permissions' => 'server', 'directory_listing' => 'server',
     'admin_users' => 'users', 'admin_count' => 'users', 'login_attempts' => 'login',
     'malware_scan' => 'malware',

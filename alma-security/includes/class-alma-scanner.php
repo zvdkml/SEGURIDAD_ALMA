@@ -9,6 +9,7 @@ class Alma_Scanner {
 	public static function get_check_name( $id ) {
 		$names = array(
 			'wp_update'         => 'Versión de WordPress',
+			'wp_vulnerabilities' => 'Vulnerabilidades del Core',
 			'xmlrpc'            => 'XML-RPC',
 			'debug_mode'        => 'Modo Debug',
 			'sensitive_files'   => 'Archivos Sensibles',
@@ -32,6 +33,7 @@ class Alma_Scanner {
 			'backup_detect'         => 'Sistema de Backups',
 			'plugins_update'        => 'Actualización de Plugins',
 			'themes_update'         => 'Actualización de Temas',
+			'theme_vulnerabilities' => 'Vulnerabilidades de temas',
 			'plugin_vulnerabilities' => 'Vulnerabilidades de plugins',
 		);
 		return isset( $names[ $id ] ) ? $names[ $id ] : '';
@@ -39,9 +41,9 @@ class Alma_Scanner {
 
 	public function run_scan( $type = 'all', $check_id = '' ) {
 		$all_checks = array(
-			'wp'      => array( 'wp_update', 'debug_mode', 'xmlrpc', 'sensitive_files', 'server_config' ),
+			'wp'      => array( 'wp_update', 'wp_vulnerabilities', 'debug_mode', 'xmlrpc', 'sensitive_files', 'server_config' ),
 			'plugins' => array( 'plugins_detailed', 'plugin_vulnerabilities' ),
-			'themes'  => array( 'themes_detailed' ),
+			'themes'  => array( 'themes_detailed', 'theme_vulnerabilities' ),
 			'server'  => array( 'php_version', 'security_headers', 'https', 'file_permissions', 'directory_listing' ),
 			'users'   => array( 'admin_users', 'admin_count', 'login_attempts' ),
 			'malware' => array( 'malware_scan' ),
@@ -60,9 +62,9 @@ class Alma_Scanner {
 			$checks_to_run = array( $check_id );
 		} elseif ( $type === 'all' ) {
 			$checks_to_run = array(
-				'wp_update', 'xmlrpc', 'debug_mode', 'sensitive_files',
+				'wp_update', 'wp_vulnerabilities', 'xmlrpc', 'debug_mode', 'sensitive_files',
 				'plugins_detailed', 'plugin_vulnerabilities',
-				'themes_detailed',
+				'themes_detailed', 'theme_vulnerabilities',
 				'php_version', 'server_config', 'https', 'file_permissions', 'directory_listing',
 				'admin_users', 'admin_count',
 				'malware_scan',
@@ -100,6 +102,45 @@ class Alma_Scanner {
 		return $data;
 	}
 
+	private function check_wp_vulnerabilities() {
+		$api = new Alma_API();
+		$vulnerabilities = array();
+		$found_vulnerable = false;
+
+		$cache = get_transient( 'alma_security_wp_vulnerabilities_cache' );
+		if ( false === $cache ) {
+			$response = $api->get_vulnerability( 'core' );
+			if ( is_array( $response ) && isset( $response['data']['vulnerability'] ) && is_array( $response['data']['vulnerability'] ) ) {
+				foreach ( $response['data']['vulnerability'] as $v ) {
+					$vulnerabilities[] = array(
+						'name'  => 'WordPress Core',
+						'risk'  => isset( $v['impact']['cvss']['severity'] ) ? $this->map_severity( $v['impact']['cvss']['severity'] ) : 'Medio',
+						'issue' => ! empty( $v['name'] ) ? $v['name'] : 'Vulnerabilidad detectada',
+						'date'  => isset( $v['source'][0]['date'] ) ? $v['source'][0]['date'] : date( 'Y-m-d' ),
+					);
+					$found_vulnerable = true;
+				}
+			}
+			set_transient( 'alma_security_wp_vulnerabilities_cache', $vulnerabilities, 12 * HOUR_IN_SECONDS );
+		} else {
+			$vulnerabilities = $cache;
+			$found_vulnerable = ! empty( $vulnerabilities );
+		}
+
+		$status = $found_vulnerable ? 'warning' : 'secure';
+		$risk = $found_vulnerable ? 'Alto' : 'Bajo';
+		$description = $found_vulnerable ? 'Se han detectado vulnerabilidades en la versión actual de WordPress.' : 'No se han detectado vulnerabilidades conocidas en tu versión de WordPress.';
+
+		return array(
+			'name'           => 'Vulnerabilidades del Core',
+			'status'         => $status,
+			'risk'           => $risk,
+			'data'           => array_slice( $vulnerabilities, 0, 5 ),
+			'description'    => $description,
+			'recommendation' => 'Actualiza WordPress a la última versión estable de inmediato.',
+		);
+	}
+
 	private function check_wp_update() {
 		$current = get_site_transient( 'update_core' );
 		$is_secure = true;
@@ -134,6 +175,61 @@ class Alma_Scanner {
 			'count'          => $count,
 			'description'    => $is_secure ? ( $fix_active ? 'Actualizaciones de plugins mitigadas internamente.' : 'Todos los plugins están actualizados.' ) : "Tienes $count plugins desactualizados.",
 			'recommendation' => 'Actualiza todos los plugins a sus últimas versiones o utiliza la mitigación de Alma Security.',
+		);
+	}
+
+	private function check_theme_vulnerabilities() {
+		$all_themes = wp_get_themes();
+		$api = new Alma_API();
+		$vulnerabilities = array();
+		$found_installed_vulnerable = false;
+
+		$cache = get_transient( 'alma_security_theme_vulnerabilities_cache' );
+		if ( false === $cache ) {
+			// Limit to 5 themes to avoid timeouts
+			$themes_to_check = array_slice( $all_themes, 0, 5, true );
+			foreach ( $themes_to_check as $slug => $theme ) {
+				$response = $api->get_vulnerability( 'theme', $slug );
+				if ( is_array( $response ) && isset( $response['data']['vulnerability'] ) && is_array( $response['data']['vulnerability'] ) ) {
+					foreach ( $response['data']['vulnerability'] as $v ) {
+						$max_v = isset( $v['operator']['max_version'] ) ? $v['operator']['max_version'] : '0.0.0';
+						$max_op = isset( $v['operator']['max_operator'] ) ? $v['operator']['max_operator'] : 'le';
+						$unfixed = isset( $v['operator']['unfixed'] ) ? (bool)$v['operator']['unfixed'] : false;
+						$comp_op = ( $max_op === 'le' ) ? '<=' : ( ( $max_op === 'lt' ) ? '<' : '<=' );
+						$is_vulnerable = $unfixed || ( ! empty( $max_v ) && version_compare( $theme->get( 'Version' ), $max_v, $comp_op ) );
+
+						$vulnerabilities[] = array(
+							'name'      => $theme->get( 'Name' ),
+							'risk'      => isset( $v['impact']['cvss']['severity'] ) ? $this->map_severity( $v['impact']['cvss']['severity'] ) : 'Medio',
+							'issue'     => ! empty( $v['name'] ) ? $v['name'] : 'Vulnerabilidad detectada',
+							'installed' => $is_vulnerable,
+							'date'      => isset( $v['source'][0]['date'] ) ? $v['source'][0]['date'] : date( 'Y-m-d' ),
+						);
+						if ( $is_vulnerable ) $found_installed_vulnerable = true;
+					}
+				}
+			}
+			set_transient( 'alma_security_theme_vulnerabilities_cache', $vulnerabilities, 12 * HOUR_IN_SECONDS );
+		} else {
+			$vulnerabilities = $cache;
+			foreach ( $vulnerabilities as $v ) {
+				if ( ! empty( $v['installed'] ) ) {
+					$found_installed_vulnerable = true;
+					break;
+				}
+			}
+		}
+
+		$status = $found_installed_vulnerable ? 'warning' : 'secure';
+		$risk = $found_installed_vulnerable ? 'Alto' : 'Bajo';
+
+		return array(
+			'name'           => 'Vulnerabilidades de temas',
+			'status'         => $status,
+			'risk'           => $risk,
+			'data'           => array_slice( $vulnerabilities, 0, 5 ),
+			'description'    => $found_installed_vulnerable ? '¡ALERTA! Se han detectado vulnerabilidades en temas instalados.' : 'No se han detectado vulnerabilidades conocidas en tus temas.',
+			'recommendation' => 'Mantén tus temas actualizados y elimina los que no utilices.',
 		);
 	}
 
@@ -792,7 +888,7 @@ class Alma_Scanner {
 					$slug = str_replace( '.php', '', $file );
 				}
 
-				$response = $api->get_plugin_vulnerability( $slug );
+				$response = $api->get_vulnerability( 'plugin', $slug );
 
 				if ( is_array( $response ) && isset( $response['data']['vulnerability'] ) && is_array( $response['data']['vulnerability'] ) ) {
 					foreach ( $response['data']['vulnerability'] as $v ) {
