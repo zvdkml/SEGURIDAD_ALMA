@@ -51,6 +51,7 @@ class Alma_API {
 	 * @return array Decoded JSON data or empty array on failure.
 	 */
 	public function get_vulnerability( $type, $slug = '' ) {
+		error_log( "[Alma Security API] Entrando en get_vulnerability: $type ($slug)" );
 		$base_url = 'https://www.wpvulnerability.net/';
 
 		switch ( $type ) {
@@ -70,6 +71,7 @@ class Alma_API {
 				return array();
 		}
 
+		error_log( "[Alma Security API] Consultando URL: $url" );
 		$response = wp_remote_get( $url, array(
 			'timeout' => 10,
 			'headers' => array(
@@ -83,11 +85,15 @@ class Alma_API {
 		}
 
 		$status_code = wp_remote_retrieve_response_code( $response );
+		error_log( "[Alma Security API] Código de respuesta: $status_code" );
+
 		if ( $status_code !== 200 ) {
 			return array();
 		}
 
 		$body = wp_remote_retrieve_body( $response );
+		error_log( "[Alma Security API] Contenido recibido (primeros 500 chars): " . substr( $body, 0, 500 ) );
+
 		$data = json_decode( $body, true );
 
 		if ( json_last_error() !== JSON_ERROR_NONE ) {
