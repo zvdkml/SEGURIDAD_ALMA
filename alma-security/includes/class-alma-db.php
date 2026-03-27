@@ -85,12 +85,12 @@ class Alma_DB {
 		$wpdb->replace(
 			$table_name,
 			array(
-				'check_id'       => $id,
-				'check_name'     => $data['name'],
-				'status'         => $data['status'],
-				'result'         => $result_content,
-				'recommendation' => $data['recommendation'],
-				'risk_level'     => isset($data['risk']) ? $data['risk'] : 'Bajo',
+				'check_id'       => (string) $id,
+				'check_name'     => (string) $data['name'],
+				'status'         => (string) $data['status'],
+				'result'         => (string) $result_content,
+				'recommendation' => (string) $data['recommendation'],
+				'risk_level'     => (string) (isset($data['risk']) ? $data['risk'] : 'Bajo'),
 				'last_scan_at'   => current_time( 'mysql' ),
 				'is_vulnerabilities' => isset($data['is_vulnerabilities']) ? 1 : 0,
 			),

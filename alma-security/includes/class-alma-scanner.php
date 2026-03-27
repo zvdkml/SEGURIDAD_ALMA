@@ -863,27 +863,13 @@ class Alma_Scanner {
 		$data = array_slice( $all_vulnerabilities, 0, 5 );
 
 		if ( $found_installed_vulnerable ) {
-			$status = 'critical';
+			$status = 'warning'; // Requested WARNING status if vulnerabilities found
 			$risk = 'Alto';
-			$description = '¡ALERTA! Se han detectado vulnerabilidades críticas en plugins que TIENES instalados.';
-		} elseif ( ! empty( $data ) ) {
-			// Check if any of the top 5 is actually installed to justify a warning
-			$any_installed = false;
-			foreach ( $data as $v ) {
-				if ( ! empty( $v['installed'] ) ) {
-					$any_installed = true;
-					break;
-				}
-			}
-
-			if ( $any_installed ) {
-				$status = 'warning';
-				$description = 'Se han detectado vulnerabilidades en plugins instalados.';
-			} else {
-				$status = 'secure';
-				$risk = 'Bajo';
-				$description = 'Tus plugins instalados no tienen vulnerabilidades conocidas (se detectaron otras en el ecosistema).';
-			}
+			$description = '¡ALERTA! Se han detectado vulnerabilidades en plugins que TIENES instalados.';
+		} else {
+			$status = 'secure'; // Requested OK (secure) status if no vulnerabilities found
+			$risk = 'Bajo';
+			$description = 'No se han detectado vulnerabilidades conocidas en tus plugins instalados.';
 		}
 
 		if ( $fix_active ) {
