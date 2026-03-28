@@ -837,6 +837,7 @@ class Alma_Scanner {
 	}
 
 	private function check_plugin_vulnerabilities() {
+		error_log("VULNERABILIDADES EJECUTANDOSE");
 		$all_plugins = get_plugins();
 		$api = new Alma_API();
 		$vulnerabilities = array();
