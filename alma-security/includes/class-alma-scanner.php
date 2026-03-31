@@ -836,7 +836,7 @@ class Alma_Scanner {
 		);
 	}
 
-	private function check_plugin_vulnerabilities() {
+	public function check_plugin_vulnerabilities() {
 		if ( ! function_exists( 'get_plugins' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}

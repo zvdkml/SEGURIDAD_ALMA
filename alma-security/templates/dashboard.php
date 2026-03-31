@@ -352,24 +352,16 @@
             </div>
             <div id="vulnerabilities-list-dashboard" class="bg-gray-50/50 p-8 rounded-[2rem] border border-gray-100">
                 <?php
-                // Simulated mock data for plugin vulnerabilities
-                $vulnerabilities = array(
-                    array(
-                        'name'      => 'Elementor',
-                        'risk'      => 'Alto',
-                        'issue'     => 'XSS crítica',
-                        'installed' => true,
-                        'date'      => date( 'Y-m-d' ),
-                    ),
-                    array(
-                        'name'      => 'WooCommerce',
-                        'risk'      => 'Medio',
-                        'issue'     => 'Exposición de datos',
-                        'installed' => true,
-                        'date'      => date( 'Y-m-d' ),
-                    ),
-                );
-                include ALMA_SECURITY_PATH . 'templates/components/vulnerabilities-list.php';
+                // Fetch real vulnerability data from API with mock fallback
+                $scanner = new Alma_Scanner();
+                $v_result = $scanner->check_plugin_vulnerabilities();
+                $vulnerabilities = isset( $v_result['data'] ) ? $v_result['data'] : array();
+
+                if ( ! empty( $vulnerabilities ) ) {
+                    include ALMA_SECURITY_PATH . 'templates/components/vulnerabilities-list.php';
+                } else {
+                    echo '<p class="text-gray-400 font-black uppercase tracking-widest text-xs">No se detectaron vulnerabilidades activas.</p>';
+                }
                 ?>
             </div>
         </div>
