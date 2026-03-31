@@ -39,7 +39,9 @@ if ( ! empty( $vulnerabilities ) && is_array( $vulnerabilities ) ) :
                             <svg class="h-2 w-2 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
                             INSTALADO Y VULNERABLE
                         </span>
-                        <span class="bg-red-600 text-white text-[7px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter shadow-sm">CRÍTICO</span>
+                        <a href="<?php echo home_url('/security/fix?check=plugin_vulnerabilities&plugin=' . (isset($v['slug']) ? $v['slug'] : '')); ?>" class="bg-red-600 hover:bg-red-700 text-white text-[7px] font-black px-2 py-1 rounded uppercase tracking-tighter shadow-sm transition-colors">
+                            IR A REPARAR
+                        </a>
                     </div>
                 <?php endif; ?>
             </div>

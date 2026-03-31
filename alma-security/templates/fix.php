@@ -4,8 +4,38 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 $check_id = isset( $_GET['check'] ) ? sanitize_text_field( $_GET['check'] ) : '';
+$plugin_slug = isset( $_GET['plugin'] ) ? sanitize_text_field( $_GET['plugin'] ) : '';
 $db = new Alma_DB();
 $result = $db->get_check_result( $check_id );
+
+// Custom logic for plugin vulnerabilities
+if ( $check_id === 'plugin_vulnerabilities' && ! empty( $plugin_slug ) ) {
+    $vulnerabilities = array();
+    if ( $result && ! empty( $result['result'] ) ) {
+        $vulnerabilities = json_decode( $result['result'], true );
+    }
+
+    $plugin_data = null;
+    if ( is_array( $vulnerabilities ) ) {
+        foreach ( $vulnerabilities as $v ) {
+            if ( isset( $v['slug'] ) && $v['slug'] === $plugin_slug ) {
+                $plugin_data = $v;
+                break;
+            }
+        }
+    }
+
+    if ( $plugin_data ) {
+        $result = array(
+            'check_id'   => 'plugin_vulnerabilities',
+            'check_name' => 'Reparar: ' . $plugin_data['name'],
+            'status'     => 'critical',
+            'result'     => 'Se ha detectado una vulnerabilidad en ' . $plugin_data['name'] . ': ' . (isset($plugin_data['description']) ? $plugin_data['description'] : $plugin_data['issue']),
+            'recommendation' => 'Haz clic en el botón de abajo para intentar mitigar este riesgo en ' . $plugin_data['name'] . '.',
+            'risk_level' => $plugin_data['risk']
+        );
+    }
+}
 
 if ( ! $result ) {
     $check_name = Alma_Scanner::get_check_name( $check_id );
