@@ -95,14 +95,29 @@ if ( $result['status'] === 'warning' ) {
 
             <div class="bg-white p-12 rounded-[3.5rem] shadow-2xl border border-gray-100 relative overflow-hidden">
                 <!-- Header -->
-                <div class="mb-12">
-                    <h1 class="text-xs font-black text-blue-600 uppercase tracking-[0.4em] mb-4">Verificación</h1>
-                    <h2 class="text-5xl font-black text-gray-900 tracking-tighter"><?php echo esc_html( $result['check_name'] ); ?></h2>
+                <div class="mb-12 flex justify-between items-start">
+                    <div>
+                        <h1 class="text-xs font-black text-blue-600 uppercase tracking-[0.4em] mb-4">Verificación Detallada</h1>
+                        <h2 class="text-5xl font-black text-gray-900 tracking-tighter"><?php echo esc_html( $result['check_name'] ); ?></h2>
+                    </div>
+                    <?php if ( ! empty( $result['risk_level'] ) && $result['risk_level'] !== 'N/A' ) : ?>
+                        <?php
+                        $r_class = 'bg-red-100 text-red-800 border-red-200';
+                        if ($result['risk_level'] === 'Medio') $r_class = 'bg-orange-100 text-orange-800 border-orange-200';
+                        elseif ($result['risk_level'] === 'Bajo') $r_class = 'bg-blue-100 text-blue-800 border-blue-200';
+                        ?>
+                        <div class="flex flex-col items-end">
+                            <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Riesgo</span>
+                            <span class="inline-flex items-center px-4 py-1.5 rounded-2xl text-xs font-black uppercase <?php echo $r_class; ?> border shadow-sm">
+                                <?php echo esc_html( $result['risk_level'] ); ?>
+                            </span>
+                        </div>
+                    <?php endif; ?>
                 </div>
 
                 <!-- Problem Description -->
                 <div class="bg-red-50 p-10 rounded-[2.5rem] border border-red-100 mb-10">
-                    <h3 class="text-[10px] font-black text-red-400 uppercase tracking-widest mb-4">Descripción del Problema</h3>
+                    <h3 class="text-[10px] font-black text-red-400 uppercase tracking-widest mb-4">Descripción Completa</h3>
                     <p class="text-xl text-red-900 font-bold leading-relaxed">
                         <?php echo esc_html( $result['result'] ); ?>
                     </p>
@@ -114,7 +129,7 @@ if ( $result['status'] === 'warning' ) {
                         <svg id="reparar-icon" class="h-6 w-6 mr-3 group-hover:rotate-12 transition-transform duration-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
-                        <span id="reparar-text">REPARAR</span>
+                        <span id="reparar-text">REPARAR AHORA</span>
                     </button>
 
                     <p class="mt-6 text-xs text-gray-400 font-medium uppercase tracking-widest">Esta acción intentará corregir la vulnerabilidad automáticamente.</p>
