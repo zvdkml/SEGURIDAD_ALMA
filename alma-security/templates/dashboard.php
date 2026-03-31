@@ -336,6 +336,26 @@
         <?php endforeach; ?>
     </div>
 
+    <!-- Plugins Vulnerabilities Section (New Requirement) -->
+    <div class="mb-20">
+        <div class="bg-white rounded-[3rem] shadow-sm border border-gray-100 overflow-hidden transition-all hover:shadow-2xl group p-10">
+            <div class="flex items-center mb-8">
+                <div class="p-5 bg-purple-50 rounded-3xl text-purple-600 mr-8 shadow-sm transition-transform group-hover:scale-110">
+                    <svg class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-4xl font-black text-gray-900 tracking-tighter">Vulnerabilidades de Plugins</h3>
+                    <p class="text-gray-400 font-bold text-[10px] uppercase mt-1 tracking-[0.2em]">Auditoría avanzada de plugin security</p>
+                </div>
+            </div>
+            <div id="vulnerabilities-list-dashboard" class="bg-gray-50/50 p-8 rounded-[2rem] border border-gray-100 text-center">
+                <p class="text-gray-400 font-black uppercase tracking-widest text-xs animate-pulse">Cargando vulnerabilidades...</p>
+            </div>
+        </div>
+    </div>
+
     <!-- Navigation Footer -->
     <div class="mt-20 mb-20 flex flex-col items-center">
         <a href="<?php echo home_url('/security/issues'); ?>" class="group flex items-center bg-gray-900 hover:bg-blue-600 text-white font-black py-5 px-16 rounded-[2rem] transition-all duration-300 transform hover:-translate-y-1 shadow-2xl uppercase tracking-[0.2em] text-sm">
