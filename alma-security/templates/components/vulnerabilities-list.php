@@ -21,7 +21,9 @@ if ( ! empty( $vulnerabilities ) && is_array( $vulnerabilities ) ) :
                 <span class="font-black text-<?php echo $color; ?>-700 mr-2 uppercase tracking-tighter w-16 truncate" title="<?php echo esc_attr( $v['name'] ); ?>"><?php echo esc_html( $v['name'] ); ?></span>
                 <span class="w-1 h-1 bg-<?php echo $color; ?>-300 rounded-full mr-2 shrink-0"></span>
                 <span class="font-bold text-<?php echo $color; ?>-600 mr-2 shrink-0"><?php echo esc_html( $v['risk'] ); ?></span>
-                <span class="text-<?php echo $color; ?>-500 italic truncate" title="<?php echo esc_attr( $v['issue'] ); ?>"><?php echo esc_html( $v['issue'] ); ?></span>
+                <span class="text-<?php echo $color; ?>-500 italic truncate" title="<?php echo esc_attr( isset($v['description']) ? $v['description'] : (isset($v['issue']) ? $v['issue'] : '') ); ?>">
+                    <?php echo esc_html( isset($v['description']) ? $v['description'] : (isset($v['issue']) ? $v['issue'] : '') ); ?>
+                </span>
                 <?php if ( ! empty( $v['installed'] ) ) : ?>
                     <span class="ml-auto bg-red-600 text-white text-[7px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter animate-pulse" title="Este plugin instalado tiene vulnerabilidades">VULNERABLE</span>
                 <?php endif; ?>

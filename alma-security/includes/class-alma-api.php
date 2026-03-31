@@ -103,4 +103,75 @@ class Alma_API {
 
 		return is_array( $data ) ? $data : array();
 	}
+
+	/**
+	 * Consumes the WPVulnerability API and returns a list of vulnerable plugins.
+	 *
+	 * @return array List of structured vulnerability data (max 5).
+	 */
+	public function get_plugin_vulnerabilities_list() {
+		if ( ! function_exists( 'get_plugins' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		}
+
+		$all_plugins = get_plugins();
+		$vulnerable_list = array();
+		$count = 0;
+
+		foreach ( $all_plugins as $path => $data ) {
+			if ( $count >= 5 ) break;
+
+			$slug = dirname( $path );
+			if ( $slug === '.' ) continue;
+
+			$response = $this->get_vulnerability( 'plugin', $slug );
+
+			if ( is_array( $response ) && isset( $response['data']['vulnerability'] ) && is_array( $response['data']['vulnerability'] ) ) {
+				foreach ( $response['data']['vulnerability'] as $v ) {
+					// Basic version matching
+					$max_v = isset( $v['operator']['max_version'] ) ? $v['operator']['max_version'] : '0.0.0';
+					$max_op = isset( $v['operator']['max_operator'] ) ? $v['operator']['max_operator'] : 'le';
+					$unfixed = isset( $v['operator']['unfixed'] ) ? (bool)$v['operator']['unfixed'] : false;
+					$comp_op = ( $max_op === 'le' ) ? '<=' : ( ( $max_op === 'lt' ) ? '<' : '<=' );
+
+					$is_vulnerable = $unfixed || ( ! empty( $max_v ) && version_compare( $data['Version'], $max_v, $comp_op ) );
+
+					if ( $is_vulnerable ) {
+						$vulnerable_list[] = array(
+							'slug'        => $slug,
+							'name'        => $data['Name'],
+							'risk'        => isset( $v['impact']['cvss']['severity'] ) ? $this->map_severity_api( $v['impact']['cvss']['severity'] ) : 'Medio',
+							'description' => ! empty( $v['name'] ) ? $v['name'] : 'Vulnerabilidad detectada',
+						);
+						$count++;
+						break; // Found one vulnerability for this plugin, move to next
+					}
+				}
+			}
+		}
+
+		return $vulnerable_list;
+	}
+
+	/**
+	 * Internal map for severity levels.
+	 *
+	 * @param string $severity English severity from API.
+	 * @return string Spanish severity for UI.
+	 */
+	private function map_severity_api( $severity ) {
+		$severity = strtolower( $severity );
+		switch ( $severity ) {
+			case 'critical':
+				return 'Crítico';
+			case 'high':
+				return 'Alto';
+			case 'medium':
+				return 'Medio';
+			case 'low':
+				return 'Bajo';
+			default:
+				return 'Medio';
+		}
+	}
 }
