@@ -350,8 +350,27 @@
                     <p class="text-gray-400 font-bold text-[10px] uppercase mt-1 tracking-[0.2em]">Auditoría avanzada de plugin security</p>
                 </div>
             </div>
-            <div id="vulnerabilities-list-dashboard" class="bg-gray-50/50 p-8 rounded-[2rem] border border-gray-100 text-center">
-                <p class="text-gray-400 font-black uppercase tracking-widest text-xs animate-pulse">Cargando vulnerabilidades...</p>
+            <div id="vulnerabilities-list-dashboard" class="bg-gray-50/50 p-8 rounded-[2rem] border border-gray-100">
+                <?php
+                // Simulated mock data for plugin vulnerabilities
+                $vulnerabilities = array(
+                    array(
+                        'name'      => 'Elementor',
+                        'risk'      => 'Alto',
+                        'issue'     => 'XSS crítica',
+                        'installed' => true,
+                        'date'      => date( 'Y-m-d' ),
+                    ),
+                    array(
+                        'name'      => 'WooCommerce',
+                        'risk'      => 'Medio',
+                        'issue'     => 'Exposición de datos',
+                        'installed' => true,
+                        'date'      => date( 'Y-m-d' ),
+                    ),
+                );
+                include ALMA_SECURITY_PATH . 'templates/components/vulnerabilities-list.php';
+                ?>
             </div>
         </div>
     </div>
