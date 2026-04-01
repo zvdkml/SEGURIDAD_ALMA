@@ -239,7 +239,9 @@ class Alma_Admin {
 		}
 
 		$check_id = isset( $_POST['check_id'] ) ? sanitize_text_field( $_POST['check_id'] ) : '';
-		error_log( "[Alma Security] Parámetro check recibido: " . $check_id );
+		$plugin   = isset( $_POST['plugin'] ) ? sanitize_text_field( $_POST['plugin'] ) : '';
+
+		error_log( "[Alma Security] Parámetro check recibido: " . $check_id . ( $plugin ? " (Plugin: $plugin)" : "" ) );
 		if ( empty( $check_id ) ) {
 			wp_send_json_error( array( 'message' => 'ID de verificación faltante.' ) );
 		}
@@ -248,7 +250,7 @@ class Alma_Admin {
 
 		// Attempt to automatically fix the issue
 		error_log( "[Alma Security] Ejecutando fix_check para: " . $check_id );
-		$scanner->fix_check( $check_id );
+		$scanner->fix_check( $check_id, $plugin );
 
 		$results = $scanner->run_scan( 'individual', $check_id );
 

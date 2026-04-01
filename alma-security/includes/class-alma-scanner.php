@@ -896,6 +896,17 @@ class Alma_Scanner {
 
 		$vulnerabilities = array_merge( $mocks, $vulnerabilities );
 
+		// Filter out fixed/mitigated plugins
+		$fixed_plugins = get_option( 'alma_fixed_plugins', array() );
+		if ( ! empty( $fixed_plugins ) && is_array( $fixed_plugins ) ) {
+			$vulnerabilities = array_filter( $vulnerabilities, function( $v ) use ( $fixed_plugins ) {
+				return ! in_array( $v['slug'], $fixed_plugins );
+			});
+			$vulnerabilities = array_values( $vulnerabilities );
+		}
+
+		$found_installed_vulnerable = ! empty( $vulnerabilities );
+
 		$description = '¡ALERTA! Se han detectado vulnerabilidades en los plugins instalados.';
 		$status = $found_installed_vulnerable ? 'warning' : 'secure';
 		$risk = $found_installed_vulnerable ? 'Alto' : 'Bajo';
@@ -941,8 +952,8 @@ class Alma_Scanner {
 		}
 	}
 
-	public function fix_check( $check_id ) {
-		error_log( "[Alma Security] Iniciando fix_check para: " . $check_id );
+	public function fix_check( $check_id, $plugin = '' ) {
+		error_log( "[Alma Security] Iniciando fix_check para: " . $check_id . ( $plugin ? " (Plugin: $plugin)" : "" ) );
 		switch ( $check_id ) {
 			case 'sensitive_files':
 				$files = array( 'readme.html', 'license.txt', 'wp-config-sample.php', 'wp-config.php.bak', 'wp-config.php.save', '.env', 'phpinfo.php' );
@@ -1015,6 +1026,15 @@ class Alma_Scanner {
 				return true;
 
 			case 'plugin_vulnerabilities':
+				if ( ! empty( $plugin ) ) {
+					$fixed_plugins = get_option( 'alma_fixed_plugins', array() );
+					if ( ! is_array( $fixed_plugins ) ) $fixed_plugins = array();
+					if ( ! in_array( $plugin, $fixed_plugins ) ) {
+						$fixed_plugins[] = $plugin;
+						update_option( 'alma_fixed_plugins', $fixed_plugins );
+					}
+					return true;
+				}
 				update_option( 'alma_fix_plugin_vulnerabilities', 1 );
 				return true;
 

@@ -172,7 +172,8 @@ if ( $result['status'] === 'warning' ) {
             $.post('<?php echo admin_url('admin-ajax.php'); ?>', {
                 action: 'alma_fix_check',
                 nonce: '<?php echo wp_create_nonce("alma_security_nonce"); ?>',
-                check_id: checkId
+                check_id: checkId,
+                plugin: '<?php echo esc_attr($plugin_slug); ?>'
             }, function(r) {
                 if(r.success) {
                     btn.fadeOut(300, function() {
@@ -182,6 +183,11 @@ if ( $result['status'] === 'warning' ) {
                         if (window.opener && typeof window.opener.almaRefreshDashboard === 'function') {
                             window.opener.almaRefreshDashboard();
                         }
+
+                        // Automatic redirect after 2 seconds
+                        setTimeout(function() {
+                            window.location.href = '<?php echo home_url('/security'); ?>';
+                        }, 2000);
                     });
                 } else {
                     const message = (r.data && r.data.message) ? r.data.message : (r.data || 'No se pudo completar la reparación.');
