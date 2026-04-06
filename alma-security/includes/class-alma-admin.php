@@ -268,7 +268,21 @@ class Alma_Admin {
 			error_log( "[Alma Security] Guardando nuevo estado en DB: " . $results['vulnerabilities'][ $check_id ]['status'] );
 			$db->save_check_result( $check_id, $results['vulnerabilities'][ $check_id ] );
 
-			if ( $results['vulnerabilities'][ $check_id ]['status'] === 'secure' ) {
+			// Success condition: check is 'secure' OR the specific plugin is no longer in the list
+			$is_fixed = ( $results['vulnerabilities'][ $check_id ]['status'] === 'secure' );
+
+			if ( ! $is_fixed && ! empty( $plugin ) && isset( $results['vulnerabilities'][ $check_id ]['data'] ) ) {
+				$found = false;
+				foreach ( $results['vulnerabilities'][ $check_id ]['data'] as $v ) {
+					if ( isset( $v['slug'] ) && $v['slug'] === $plugin ) {
+						$found = true;
+						break;
+					}
+				}
+				if ( ! $found ) $is_fixed = true;
+			}
+
+			if ( $is_fixed ) {
 				// Success: Synchronize global score and latest scan data
 				$full_scan = $scanner->run_scan( 'all' );
 				$db->save_score_history( $full_scan['score'] );

@@ -149,7 +149,7 @@ if ( $result['status'] === 'warning' ) {
                             <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
                         </div>
                     </div>
-                    <h4 class="text-2xl font-black text-green-900 tracking-tight">¡Problema Solucionado!</h4>
+                    <h4 class="text-2xl font-black text-green-900 tracking-tight uppercase tracking-widest">Problema solucionado</h4>
                     <a href="<?php echo home_url('/security'); ?>" class="mt-8 inline-block bg-green-900 text-white font-black py-4 px-10 rounded-2xl text-sm">VOLVER AL DASHBOARD</a>
                 </div>
             </div>

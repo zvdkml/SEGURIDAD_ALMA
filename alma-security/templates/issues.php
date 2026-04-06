@@ -107,6 +107,38 @@ $has_issues = ! empty( $issues_by_module );
                                         <?php foreach ( $rows as $row ) :
                                             $status_class = $row['status'] === 'critical' ? 'bg-red-50 text-red-600' : 'bg-orange-50 text-orange-600';
                                             $status_label = $row['status'] === 'critical' ? 'CRÍTICO' : 'ADVERTENCIA';
+
+                                            // Handle plugin vulnerabilities as multiple rows
+                                            if ($row['check_id'] === 'plugin_vulnerabilities') {
+                                                $vulnerabilities = !empty($row['result']) ? json_decode($row['result'], true) : array();
+                                                if (is_array($vulnerabilities)) {
+                                                    foreach ($vulnerabilities as $v) {
+                                                        if (empty($v['installed'])) continue;
+
+                                                        $p_status_class = strtolower($v['risk']) === 'alto' || strtolower($v['risk']) === 'high' ? 'bg-red-50 text-red-600' : 'bg-orange-50 text-orange-600';
+                                                        $p_status_label = strtoupper($v['risk']);
+                                                        ?>
+                                                        <tr class="issue-row" id="issue-row-<?php echo esc_attr($row['check_id'] . '-' . $v['slug']); ?>">
+                                                            <td class="px-6 py-6">
+                                                                <div class="font-black text-gray-900"><?php echo esc_html($v['name']); ?></div>
+                                                                <div class="text-[10px] text-gray-400 font-bold uppercase mt-1">Vulnerabilidad de Plugin</div>
+                                                            </td>
+                                                            <td class="px-6 py-6 text-center">
+                                                                <span class="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest <?php echo $p_status_class; ?>">
+                                                                    <?php echo $p_status_label; ?>
+                                                                </span>
+                                                            </td>
+                                                            <td class="px-6 py-6 text-right">
+                                                                <button data-check="plugin_vulnerabilities" data-plugin="<?php echo esc_attr($v['slug']); ?>" class="reparar-tarea-btn bg-gray-900 hover:bg-blue-600 text-white font-black py-2.5 px-6 rounded-xl transition-all text-[10px] uppercase tracking-widest shadow-md active:scale-95">
+                                                                    Reparar plugin
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                        <?php
+                                                    }
+                                                }
+                                                continue;
+                                            }
                                         ?>
                                         <tr class="issue-row" id="issue-row-<?php echo esc_attr($row['check_id']); ?>">
                                             <td class="px-6 py-6 font-bold text-gray-800"><?php echo esc_html( $row['check_name'] ); ?></td>
@@ -148,20 +180,25 @@ $has_issues = ! empty( $issues_by_module );
         $('.reparar-tarea-btn').on('click', function() {
             const btn = $(this);
             const checkId = btn.data('check');
+            const pluginSlug = btn.data('plugin') || '';
             const row = btn.closest('.issue-row');
             const moduleBlock = btn.closest('.issue-module-block');
 
-            console.log("[Alma Security] Click en Reparar tarea para: " + checkId);
+            console.log("[Alma Security] Click en Reparar tarea para: " + checkId + (pluginSlug ? ' (' + pluginSlug + ')' : ''));
             btn.prop('disabled', true).addClass('opacity-50 cursor-not-allowed').text('REPARANDO...');
 
             $.post('<?php echo admin_url('admin-ajax.php'); ?>', {
                 action: 'alma_fix_check',
                 nonce: '<?php echo wp_create_nonce("alma_security_nonce"); ?>',
-                check_id: checkId
+                check_id: checkId,
+                plugin: pluginSlug
             }, function(r) {
                 if(r.success) {
-                    // Problem fixed: remove the row and update UI
-                    row.fadeOut(300, function() {
+                    // Problem fixed: show message and remove row
+                    btn.removeClass('bg-gray-900 hover:bg-blue-600').addClass('bg-green-500').text('PROBLEMA SOLUCIONADO');
+
+                    setTimeout(function() {
+                        row.fadeOut(300, function() {
                         row.remove();
 
                         // Check if module block is now empty
@@ -175,7 +212,8 @@ $has_issues = ! empty( $issues_by_module );
                                 }
                             });
                         }
-                    });
+                        });
+                    }, 1000);
 
                     // Synchronize with the dashboard state
                     if (window.opener && typeof window.opener.almaRefreshDashboard === 'function') {
