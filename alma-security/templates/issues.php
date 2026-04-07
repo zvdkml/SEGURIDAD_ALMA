@@ -108,8 +108,9 @@ $has_issues = ! empty( $issues_by_module );
                                             $status_class = $row['status'] === 'critical' ? 'bg-red-50 text-red-600' : 'bg-orange-50 text-orange-600';
                                             $status_label = $row['status'] === 'critical' ? 'CRÍTICO' : 'ADVERTENCIA';
 
-                                            // Handle plugin vulnerabilities as multiple rows
-                                            if ($row['check_id'] === 'plugin_vulnerabilities') {
+                                            // Handle plugin or theme vulnerabilities as multiple rows
+                                            if ($row['check_id'] === 'plugin_vulnerabilities' || $row['check_id'] === 'theme_vulnerabilities') {
+                                                $v_type = ($row['check_id'] === 'plugin_vulnerabilities' ? 'Plugin' : 'Tema');
                                                 $vulnerabilities = !empty($row['result']) ? json_decode($row['result'], true) : array();
                                                 if (is_array($vulnerabilities)) {
                                                     foreach ($vulnerabilities as $v) {
@@ -121,7 +122,7 @@ $has_issues = ! empty( $issues_by_module );
                                                         <tr class="issue-row" id="issue-row-<?php echo esc_attr($row['check_id'] . '-' . $v['slug']); ?>">
                                                             <td class="px-6 py-6">
                                                                 <div class="font-black text-gray-900"><?php echo esc_html($v['name']); ?></div>
-                                                                <div class="text-[10px] text-gray-400 font-bold uppercase mt-1">Vulnerabilidad de Plugin</div>
+                                                                <div class="text-[10px] text-gray-400 font-bold uppercase mt-1">Vulnerabilidad de <?php echo $v_type; ?></div>
                                                             </td>
                                                             <td class="px-6 py-6 text-center">
                                                                 <span class="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest <?php echo $p_status_class; ?>">
@@ -129,8 +130,8 @@ $has_issues = ! empty( $issues_by_module );
                                                                 </span>
                                                             </td>
                                                             <td class="px-6 py-6 text-right">
-                                                                <button data-check="plugin_vulnerabilities" data-plugin="<?php echo esc_attr($v['slug']); ?>" class="reparar-tarea-btn bg-gray-900 hover:bg-blue-600 text-white font-black py-2.5 px-6 rounded-xl transition-all text-[10px] uppercase tracking-widest shadow-md active:scale-95">
-                                                                    Reparar plugin
+                                                                <button data-check="<?php echo esc_attr($row['check_id']); ?>" data-plugin="<?php echo esc_attr($v['slug']); ?>" class="reparar-tarea-btn bg-gray-900 hover:bg-blue-600 text-white font-black py-2.5 px-6 rounded-xl transition-all text-[10px] uppercase tracking-widest shadow-md active:scale-95">
+                                                                    Reparar <?php echo strtolower($v_type); ?>
                                                                 </button>
                                                             </td>
                                                         </tr>

@@ -49,7 +49,7 @@ if ( ! empty( $vulnerabilities ) && is_array( $vulnerabilities ) ) :
                             <span class="text-[7px] text-gray-400 font-bold uppercase tracking-tighter italic">Plugin Instalado</span>
                         </div>
                         <a href="<?php echo home_url('/security/fix?check=plugin_vulnerabilities&plugin=' . (isset($v['slug']) ? $v['slug'] : '')); ?>" class="bg-gray-900 hover:bg-red-600 text-white text-[9px] font-black px-5 py-2.5 rounded-xl uppercase tracking-widest shadow-lg shadow-gray-200 transition-all active:scale-95">
-                            REPARAR
+                            IR A REPARAR
                         </a>
                     <?php else : ?>
                         <span class="text-[8px] text-gray-300 font-bold uppercase tracking-widest italic">No Instalado</span>

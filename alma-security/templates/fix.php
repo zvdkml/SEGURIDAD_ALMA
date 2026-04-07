@@ -8,31 +8,32 @@ $plugin_slug = isset( $_GET['plugin'] ) ? sanitize_text_field( $_GET['plugin'] )
 $db = new Alma_DB();
 $result = $db->get_check_result( $check_id );
 
-// Custom logic for plugin vulnerabilities
-if ( $check_id === 'plugin_vulnerabilities' && ! empty( $plugin_slug ) ) {
+// Custom logic for plugin or theme vulnerabilities
+if ( ( $check_id === 'plugin_vulnerabilities' || $check_id === 'theme_vulnerabilities' ) && ! empty( $plugin_slug ) ) {
     $vulnerabilities = array();
     if ( $result && ! empty( $result['result'] ) ) {
         $vulnerabilities = json_decode( $result['result'], true );
     }
 
-    $plugin_data = null;
+    $v_data = null;
     if ( is_array( $vulnerabilities ) ) {
         foreach ( $vulnerabilities as $v ) {
             if ( isset( $v['slug'] ) && $v['slug'] === $plugin_slug ) {
-                $plugin_data = $v;
+                $v_data = $v;
                 break;
             }
         }
     }
 
-    if ( $plugin_data ) {
+    if ( $v_data ) {
+        $type_label = ( $check_id === 'plugin_vulnerabilities' ? 'plugin' : 'tema' );
         $result = array(
-            'check_id'   => 'plugin_vulnerabilities',
-            'check_name' => 'Reparar: ' . $plugin_data['name'],
+            'check_id'   => $check_id,
+            'check_name' => 'Reparar: ' . $v_data['name'],
             'status'     => 'critical',
-            'result'     => 'Se ha detectado una vulnerabilidad en ' . $plugin_data['name'] . ': ' . (isset($plugin_data['description']) ? $plugin_data['description'] : $plugin_data['issue']),
-            'recommendation' => 'Haz clic en el botón de abajo para intentar mitigar este riesgo en ' . $plugin_data['name'] . '.',
-            'risk_level' => $plugin_data['risk']
+            'result'     => 'Se ha detectado una vulnerabilidad en el ' . $type_label . ' ' . $v_data['name'] . ': ' . (isset($v_data['description']) ? $v_data['description'] : $v_data['issue']),
+            'recommendation' => 'Haz clic en el botón de abajo para intentar mitigar este riesgo en ' . $v_data['name'] . '.',
+            'risk_level' => $v_data['risk']
         );
     }
 }

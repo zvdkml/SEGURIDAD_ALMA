@@ -135,6 +135,7 @@ class Alma_Scanner {
 			'name'           => 'Vulnerabilidades del Core',
 			'status'         => $status,
 			'risk'           => $risk,
+			'is_vulnerabilities' => true,
 			'data'           => array_slice( $vulnerabilities, 0, 5 ),
 			'description'    => $description,
 			'recommendation' => 'Actualiza WordPress a la última versión estable de inmediato.',
@@ -199,6 +200,7 @@ class Alma_Scanner {
 						$is_vulnerable = $unfixed || ( ! empty( $max_v ) && version_compare( $theme->get( 'Version' ), $max_v, $comp_op ) );
 
 						$vulnerabilities[] = array(
+							'slug'      => $slug,
 							'name'      => $theme->get( 'Name' ),
 							'risk'      => isset( $v['impact']['cvss']['severity'] ) ? $this->map_severity( $v['impact']['cvss']['severity'] ) : 'Medio',
 							'issue'     => ! empty( $v['name'] ) ? $v['name'] : 'Vulnerabilidad detectada',
@@ -220,6 +222,23 @@ class Alma_Scanner {
 			}
 		}
 
+		// Filter out fixed/mitigated themes
+		$fixed_themes = get_option( 'alma_fixed_themes', array() );
+		if ( ! empty( $fixed_themes ) && is_array( $fixed_themes ) ) {
+			$vulnerabilities = array_filter( $vulnerabilities, function( $v ) use ( $fixed_themes ) {
+				return ! in_array( $v['slug'], $fixed_themes );
+			});
+			$vulnerabilities = array_values( $vulnerabilities );
+		}
+
+		$found_installed_vulnerable = false;
+		foreach ( $vulnerabilities as $v ) {
+			if ( ! empty( $v['installed'] ) ) {
+				$found_installed_vulnerable = true;
+				break;
+			}
+		}
+
 		$status = $found_installed_vulnerable ? 'warning' : 'secure';
 		$risk = $found_installed_vulnerable ? 'Alto' : 'Bajo';
 
@@ -227,6 +246,7 @@ class Alma_Scanner {
 			'name'           => 'Vulnerabilidades de temas',
 			'status'         => $status,
 			'risk'           => $risk,
+			'is_vulnerabilities' => true,
 			'data'           => array_slice( $vulnerabilities, 0, 5 ),
 			'description'    => $found_installed_vulnerable ? '¡ALERTA! Se han detectado vulnerabilidades en temas instalados.' : 'No se han detectado vulnerabilidades conocidas en tus temas.',
 			'recommendation' => 'Mantén tus temas actualizados y elimina los que no utilices.',
@@ -1036,6 +1056,19 @@ class Alma_Scanner {
 					return true;
 				}
 				update_option( 'alma_fix_plugin_vulnerabilities', 1 );
+				return true;
+
+			case 'theme_vulnerabilities':
+				if ( ! empty( $plugin ) ) { // Using same 'plugin' parameter for theme slug
+					$fixed_themes = get_option( 'alma_fixed_themes', array() );
+					if ( ! is_array( $fixed_themes ) ) $fixed_themes = array();
+					if ( ! in_array( $plugin, $fixed_themes ) ) {
+						$fixed_themes[] = $plugin;
+						update_option( 'alma_fixed_themes', $fixed_themes );
+					}
+					return true;
+				}
+				update_option( 'alma_fix_theme_vulnerabilities', 1 );
 				return true;
 
 			case 'themes_detailed':
