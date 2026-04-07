@@ -129,7 +129,7 @@ class Alma_Scanner {
 
 		$status = $found_vulnerable ? 'warning' : 'secure';
 		$risk = $found_vulnerable ? 'Alto' : 'Bajo';
-		$description = $found_vulnerable ? 'Se han detectado vulnerabilidades en la versión actual de WordPress.' : 'No se han detectado vulnerabilidades conocidas en tu versión de WordPress.';
+		$description = $found_vulnerable ? 'Se han detectado vulnerabilidades en la versión actual de WordPress.' : 'No se detectaron vulnerabilidades';
 
 		return array(
 			'name'           => 'Vulnerabilidades del Core',
@@ -248,7 +248,7 @@ class Alma_Scanner {
 			'risk'           => $risk,
 			'is_vulnerabilities' => true,
 			'data'           => array_slice( $vulnerabilities, 0, 5 ),
-			'description'    => $found_installed_vulnerable ? '¡ALERTA! Se han detectado vulnerabilidades en temas instalados.' : 'No se han detectado vulnerabilidades conocidas en tus temas.',
+			'description'    => $found_installed_vulnerable ? '¡ALERTA! Se han detectado vulnerabilidades en temas instalados.' : 'No se detectaron vulnerabilidades',
 			'recommendation' => 'Mantén tus temas actualizados y elimina los que no utilices.',
 		);
 	}
@@ -927,7 +927,7 @@ class Alma_Scanner {
 
 		$found_installed_vulnerable = ! empty( $vulnerabilities );
 
-		$description = '¡ALERTA! Se han detectado vulnerabilidades en los plugins instalados.';
+		$description = $found_installed_vulnerable ? '¡ALERTA! Se han detectado vulnerabilidades en los plugins instalados.' : 'No se detectaron vulnerabilidades';
 		$status = $found_installed_vulnerable ? 'warning' : 'secure';
 		$risk = $found_installed_vulnerable ? 'Alto' : 'Bajo';
 

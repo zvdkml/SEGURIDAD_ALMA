@@ -360,7 +360,7 @@
                 if ( ! empty( $vulnerabilities ) ) {
                     include ALMA_SECURITY_PATH . 'templates/components/vulnerabilities-list.php';
                 } else {
-                    echo '<p class="text-gray-400 font-black uppercase tracking-widest text-xs">No se detectaron vulnerabilidades activas.</p>';
+                    echo '<p class="text-gray-400 font-black uppercase tracking-widest text-xs">No se detectaron vulnerabilidades.</p>';
                 }
                 ?>
             </div>
