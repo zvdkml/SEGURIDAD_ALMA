@@ -107,7 +107,7 @@ class Alma_API {
 	/**
 	 * Consumes the WPVulnerability API and returns a list of vulnerable plugins.
 	 *
-	 * @return array List of structured vulnerability data (max 5).
+	 * @return array List of structured vulnerability data.
 	 */
 	public function get_plugin_vulnerabilities_list() {
 		if ( ! function_exists( 'get_plugins' ) ) {
@@ -116,11 +116,13 @@ class Alma_API {
 
 		$all_plugins = get_plugins();
 		$vulnerable_list = array();
-		$count = 0;
+
+		// Use transients to avoid API rate limits and slow loads
+		$cache_key = 'alma_vuln_full_list';
+		$cached = get_transient($cache_key);
+		if ($cached !== false) return $cached;
 
 		foreach ( $all_plugins as $path => $data ) {
-			if ( $count >= 5 ) break;
-
 			$slug = dirname( $path );
 			if ( $slug === '.' ) continue;
 
@@ -128,13 +130,19 @@ class Alma_API {
 
 			if ( is_array( $response ) && isset( $response['data']['vulnerability'] ) && is_array( $response['data']['vulnerability'] ) ) {
 				foreach ( $response['data']['vulnerability'] as $v ) {
-					// Basic version matching
-					$max_v = isset( $v['operator']['max_version'] ) ? $v['operator']['max_version'] : '0.0.0';
+					$max_v = isset( $v['operator']['max_version'] ) ? $v['operator']['max_version'] : '';
 					$max_op = isset( $v['operator']['max_operator'] ) ? $v['operator']['max_operator'] : 'le';
 					$unfixed = isset( $v['operator']['unfixed'] ) ? (bool)$v['operator']['unfixed'] : false;
+
+					// Map API operators to version_compare operators
 					$comp_op = ( $max_op === 'le' ) ? '<=' : ( ( $max_op === 'lt' ) ? '<' : '<=' );
 
-					$is_vulnerable = $unfixed || ( ! empty( $max_v ) && version_compare( $data['Version'], $max_v, $comp_op ) );
+					$is_vulnerable = false;
+					if ( $unfixed ) {
+						$is_vulnerable = true;
+					} elseif ( ! empty( $max_v ) ) {
+						$is_vulnerable = version_compare( $data['Version'], $max_v, $comp_op );
+					}
 
 					if ( $is_vulnerable ) {
 						$vulnerable_list[] = array(
@@ -142,14 +150,16 @@ class Alma_API {
 							'name'        => $data['Name'],
 							'risk'        => isset( $v['impact']['cvss']['severity'] ) ? $this->map_severity_api( $v['impact']['cvss']['severity'] ) : 'Medio',
 							'description' => ! empty( $v['name'] ) ? $v['name'] : 'Vulnerabilidad detectada',
+							'installed'   => true,
+							'version'     => $data['Version']
 						);
-						$count++;
 						break; // Found one vulnerability for this plugin, move to next
 					}
 				}
 			}
 		}
 
+		set_transient($cache_key, $vulnerable_list, 12 * HOUR_IN_SECONDS);
 		return $vulnerable_list;
 	}
 
