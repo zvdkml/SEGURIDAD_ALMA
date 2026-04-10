@@ -128,7 +128,7 @@
                     'title' => 'Plugin Security',
                     'icon' => 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4',
                     'color' => 'purple',
-                'checks' => array('plugins_detailed', 'plugin_vulnerabilities')
+                    'checks' => array('plugins_detailed')
                 ),
                 'themes'   => array(
                     'title' => 'Theme Security',
@@ -276,20 +276,20 @@
                                         </span>
                                     </td>
                                     <td class="px-8 py-6">
-                                        <?php if ($check_id === 'plugin_vulnerabilities' && $check_res && !empty($check_res['is_vulnerabilities'])) : ?>
+                                        <p class="text-xs text-gray-500 leading-relaxed check-description <?php echo $check_res ? '' : 'italic'; ?> line-clamp-2">
                                             <?php
-                                            $vulnerabilities = json_decode($check_res['result'], true);
-                                            if ( ! empty( $vulnerabilities ) ) {
-                                                include ALMA_SECURITY_PATH . 'templates/components/vulnerabilities-list.php';
+                                            if ($check_res) {
+                                                // If it is a vulnerability check, we show the description instead of the JSON results
+                                                if (!empty($check_res['is_vulnerabilities'])) {
+                                                    echo esc_html($check_res['description']);
+                                                } else {
+                                                    echo esc_html($check_res['result']);
+                                                }
                                             } else {
-                                                echo '<p class="text-xs text-gray-500 leading-relaxed check-description italic">' . esc_html($check_res['description']) . '</p>';
+                                                echo 'No se ha realizado el escaneo.';
                                             }
                                             ?>
-                                        <?php else : ?>
-                                            <p class="text-xs text-gray-500 leading-relaxed check-description <?php echo $check_res ? '' : 'italic'; ?> line-clamp-2">
-                                                <?php echo $check_res ? esc_html($check_res['result']) : 'No se ha realizado el escaneo.'; ?>
-                                            </p>
-                                        <?php endif; ?>
+                                        </p>
                                         <div class="mt-2 <?php echo ($check_res && !empty($check_res['recommendation'])) ? '' : 'hidden'; ?> check-recommendation-box">
                                             <p class="text-[9px] text-blue-600 font-bold check-recommendation bg-blue-50/50 px-2 py-1 rounded-lg border border-blue-100/50 inline-block">
                                                 <?php echo $check_res ? esc_html($check_res['recommendation']) : ''; ?>
@@ -349,13 +349,43 @@
                     <h3 class="text-4xl font-black text-gray-900 tracking-tighter">Vulnerabilidades de Plugins</h3>
                     <p class="text-gray-400 font-bold text-[10px] uppercase mt-1 tracking-[0.2em]">Auditoría avanzada de plugin security</p>
                 </div>
+                <div class="ml-auto">
+                    <?php if ( current_user_can( 'alma_security_scan' ) || current_user_can( 'alma_security_admin' ) ) : ?>
+                    <button data-check="plugin_vulnerabilities" class="run-individual-scan-btn bg-gray-900 hover:bg-blue-600 text-white font-black py-4 px-8 rounded-2xl transition-all shadow-xl shadow-gray-200 hover:shadow-blue-200 uppercase text-[10px] tracking-widest">
+                        ESCANEAR
+                    </button>
+                    <?php endif; ?>
+                </div>
             </div>
             <div id="vulnerabilities-list-dashboard" class="bg-gray-50/50 p-8 rounded-[2rem] border border-gray-100">
                 <?php
-                // Fetch real vulnerability data from API with mock fallback
-                $scanner = new Alma_Scanner();
-                $v_result = $scanner->check_plugin_vulnerabilities();
-                $vulnerabilities = isset( $v_result['data'] ) ? $v_result['data'] : array();
+                $db = new Alma_DB();
+                $vulnerabilities = array();
+
+                // Plugin Vulnerabilities
+                $res_p = $db->get_check_result('plugin_vulnerabilities');
+                if ($res_p && !empty($res_p['result']) && !empty($res_p['is_vulnerabilities'])) {
+                    $vulnerabilities = array_merge($vulnerabilities, json_decode($res_p['result'], true));
+                }
+
+                // Core Vulnerabilities
+                $res_wp = $db->get_check_result('wp_vulnerabilities');
+                if ($res_wp && !empty($res_wp['result']) && !empty($res_wp['is_vulnerabilities'])) {
+                    $vulnerabilities = array_merge($vulnerabilities, json_decode($res_wp['result'], true));
+                }
+
+                // Theme Vulnerabilities
+                $res_t = $db->get_check_result('theme_vulnerabilities');
+                if ($res_t && !empty($res_t['result']) && !empty($res_t['is_vulnerabilities'])) {
+                    $vulnerabilities = array_merge($vulnerabilities, json_decode($res_t['result'], true));
+                }
+
+                // Fallback to scanner if absolutely empty (e.g. first run)
+                if ( empty( $vulnerabilities ) ) {
+                    $scanner = new Alma_Scanner();
+                    $v_result = $scanner->check_plugin_vulnerabilities();
+                    $vulnerabilities = isset( $v_result['data'] ) ? $v_result['data'] : array();
+                }
 
                 if ( ! empty( $vulnerabilities ) ) {
                     include ALMA_SECURITY_PATH . 'templates/components/vulnerabilities-list.php';
