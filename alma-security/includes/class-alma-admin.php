@@ -74,8 +74,11 @@ class Alma_Admin {
 		// Chart.js CDN
 		wp_enqueue_script( 'alma-chartjs', 'https://cdn.jsdelivr.net/npm/chart.js', array(), null, true );
 
+		// Socket.IO CDN
+		wp_enqueue_script( 'alma-socketio', 'https://cdn.socket.io/4.7.2/socket.io.min.js', array(), null, true );
+
 		// Custom JS
-		wp_enqueue_script( 'alma-admin-js', ALMA_SECURITY_URL . 'assets/js/alma-admin.js', array( 'jquery', 'alma-chartjs' ), ALMA_SECURITY_VERSION, true );
+		wp_enqueue_script( 'alma-admin-js', ALMA_SECURITY_URL . 'assets/js/alma-admin.js', array( 'jquery', 'alma-chartjs', 'alma-socketio' ), ALMA_SECURITY_VERSION, true );
 
 		$history = new Alma_History();
 		$scan_index = isset( $_GET['scan_index'] ) ? intval( $_GET['scan_index'] ) : -1;

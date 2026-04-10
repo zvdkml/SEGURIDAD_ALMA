@@ -5,8 +5,10 @@
     let distributionChart = null;
     let evolutionChart = null;
     let currentFilter = 'all';
+    let socket = null;
 
     $(document).ready(function() {
+        initWebSocket();
         applyRoleRestrictions(alma_ajax.user_role);
 
         // Load persisted results if available
@@ -574,6 +576,55 @@
             Object.keys(data.vulnerabilities).forEach(checkId => {
                 updateCheckUI(checkId, data.vulnerabilities[checkId]);
             });
+        }
+    }
+
+    function initWebSocket() {
+        try {
+            if (typeof io !== 'undefined') {
+                socket = io('http://localhost:3000');
+
+                socket.on('connect', () => {
+                    console.log('[Alma Security] Conectado al servidor WebSocket');
+                });
+
+                socket.on('alerta', (data) => {
+                    console.log('[Alma Security] Alerta recibida:', data);
+                    showRealtimeAlert(data.message || 'Nueva vulnerabilidad detectada');
+                });
+
+                socket.on('connect_error', (error) => {
+                    console.warn('[Alma Security] Error de conexión WebSocket:', error.message);
+                });
+            } else {
+                console.warn('[Alma Security] Socket.io no cargado');
+            }
+        } catch (e) {
+            console.error('[Alma Security] Error inicializando WebSocket:', e);
+        }
+    }
+
+    function showRealtimeAlert(message) {
+        const container = $('#alma-alerts-container');
+        const alertHtml = `
+            <div class="flex items-center p-6 rounded-[2rem] border-2 bg-red-600 text-white shadow-2xl animate-bounce-slow transform transition-all duration-500 hover:scale-105">
+                <svg class="h-8 w-8 mr-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div class="flex-1">
+                    <span class="text-xs font-black uppercase tracking-[0.3em] block mb-1 opacity-80">Alerta en Tiempo Real</span>
+                    <p class="text-xl font-black tracking-tight leading-tight">⚠ ${message}</p>
+                </div>
+                <button onclick="$(this).parent().remove()" class="ml-4 p-2 hover:bg-white/20 rounded-full transition-colors">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+        `;
+        container.prepend(alertHtml);
+
+        // Auto-remove after 10 seconds if it's too many
+        if (container.children().length > 5) {
+            container.children().last().remove();
         }
     }
 
