@@ -22,11 +22,11 @@ if ( ! empty( $vulnerabilities ) && is_array( $vulnerabilities ) ) :
         ?>
             <div class="flex flex-col bg-white p-6 rounded-[2.5rem] border-2 <?php echo $is_installed ? 'border-red-100 ring-4 ring-red-50/30' : 'border-gray-50'; ?> shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                 <!-- Header: Name & Risk Badge -->
-                <div class="flex items-start justify-between mb-4">
-                    <h4 class="font-black text-gray-900 text-xl tracking-tighter leading-none pr-4 truncate" title="<?php echo esc_attr( $v['name'] ); ?>">
+                <div class="flex items-start justify-between mb-4 gap-4">
+                    <h4 class="font-black text-gray-900 text-xl tracking-tighter leading-none min-w-0 flex-1 break-words" title="<?php echo esc_attr( $v['name'] ); ?>">
                         <?php echo esc_html( $v['name'] ); ?>
                     </h4>
-                    <span class="inline-flex items-center px-3 py-1 rounded-xl text-[9px] font-black uppercase bg-<?php echo $color; ?>-100 text-<?php echo $color; ?>-800 border border-<?php echo $color; ?>-200 whitespace-nowrap">
+                    <span class="inline-flex items-center px-3 py-1 rounded-xl text-[9px] font-black uppercase bg-<?php echo $color; ?>-100 text-<?php echo $color; ?>-800 border border-<?php echo $color; ?>-200 whitespace-nowrap shrink-0">
                         <?php echo esc_html( $v['risk'] ); ?>
                     </span>
                 </div>

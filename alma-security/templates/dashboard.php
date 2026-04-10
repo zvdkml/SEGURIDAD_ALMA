@@ -233,14 +233,14 @@
             <div id="section-<?php echo $key; ?>" class="section-content-wrapper overflow-hidden transition-all duration-500 max-h-0">
                 <div class="p-8 pt-0">
                     <div class="overflow-x-auto rounded-[2.5rem] border border-gray-100 bg-white shadow-inner">
-                        <table class="w-full text-left border-collapse table-fixed">
+                        <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-gray-50/80 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">
-                                    <th class="px-8 py-5 w-3/12">Nombre de la verificación</th>
-                                    <th class="px-8 py-5 w-2/12 text-center">Estado</th>
-                                    <th class="px-8 py-5 w-3/12">Resultado</th>
-                                    <th class="px-8 py-5 w-2/12 text-center">Riesgo</th>
-                                    <th class="px-8 py-5 w-2/12 text-right">Acción</th>
+                                    <th class="px-8 py-5 min-w-[200px]">Nombre de la verificación</th>
+                                    <th class="px-8 py-5 text-center">Estado</th>
+                                    <th class="px-8 py-5 min-w-[300px]">Resultado</th>
+                                    <th class="px-8 py-5 text-center">Riesgo</th>
+                                    <th class="px-8 py-5 text-right">Acción</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-50 font-medium">
